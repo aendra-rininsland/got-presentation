@@ -1,8 +1,6 @@
 import 'babel-polyfill'; // eslint-disable-line import/no-unassigned-import
 import {resolve} from 'path';
-import {HotModuleReplacementPlugin} from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-// Import ManifestPlugin from 'webpack-manifest-plugin';
 
 module.exports = async (env = {}) => ({
 	entry: {
@@ -34,7 +32,6 @@ module.exports = async (env = {}) => ({
 							[
 								'env',
 								{
-                  // Via: https://docs.google.com/document/d/1mByh6sT8zI4XRyPKqWVsC2jUfXHZvhshS5SlHErWjXU/view
 									browsers: [
 										'last 2 versions',
 										'ie >= 11',
@@ -50,22 +47,29 @@ module.exports = async (env = {}) => ({
 			{
 				test: /\.s?css/,
 				use: [
-            {loader: 'style-loader', options: {sourceMap: true}},
-            {loader: 'css-loader', options: {sourceMap: true}},
-            {loader: 'postcss-loader', options: {sourceMap: true}}
+					{loader: 'style-loader', options: {sourceMap: true}},
+					{loader: 'css-loader', options: {sourceMap: true}}
+					// {loader: 'postcss-loader', options: {sourceMap: true}}
+				]
+			},
+			{
+				test: /\.pug$/,
+				use: [
+					{
+						loader: 'pug-loader'
+					}
 				]
 			}
 		]
 	},
 	devServer: {
-		hot: true,
-		contentBase: resolve(__dirname, 'client')
+		hot: false,
+		contentBase: resolve(__dirname)
 	},
 	devtool: 'source-map',
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: resolve(__dirname, 'presentation', 'slides.ejs')
-		}),
-		new HotModuleReplacementPlugin()
+			template: 'presentation/template.pug'
+		})
 	]
 });

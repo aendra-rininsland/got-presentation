@@ -1,0 +1,257 @@
+mixin url(href)
+	a(href="//" + href)= href
+
+section.intro
+	h1 A Song Of Ice and Data and Stuff
+	h2 Ændrew Rininsland
+	h3
+		| 3 August 2017,
+		a(href='https://www.meetup.com/Visualising-Data-London/')
+			| Visualising Data London
+
+section
+	h1.bullet $ whoami
+	ul
+		li Earlier this year I released a book about D3
+		li This included copious amounts of Game Of Thrones charts
+		li D3 is a fantastic library for doing rapid data visualisations
+		li
+			| I work on an editorial team at the Financial Times that rapidly creates charts for print and digital consumption
+
+section
+	h1.bullet I think winter is here?
+	ul
+		li Game of Thrones is really pretty crazy right now
+		li We're into the second-last season
+		li Lots of plots are converging
+		li I did a lot of Game of Thrones charts in my book...
+section
+	h1
+		| ...And now we're going to recreate a bunch of them in rapid-fire succession
+		br
+		em — or pay the iron price
+
+section(data-bespoke-backdrop='emphatic')
+	h1 A warning: there might be spoilers if you look too closely at the data
+
+section
+	h2 Preliminary setup
+	h3.bullet I'm assuming you're using Webpack and Babel or some such
+	h3.bullet
+		| A lighter solution is my SystemJS-based `d3-bootloader`, which can transpile ES6 module syntax and includes all of D3 loaded via CDN
+	h4
+		a(href='https://www.npmjs.com/@financial-times/d3-bootloader')
+			| npmjs.com/@financial-times/d3-bootloader
+section
+	h1 Two types of layouts in D3 v4
+	h2.bullet Hierarchical
+	h2.bullet Not-So-Hierarchical
+section
+	h1 Two types of layouts in D3 v4
+	h2.bullet Hierarchical
+	ul
+		li Pack ✅
+		li Tree (dendrograph) ✅
+		li Cluster (pretty much the same as Tree)
+		li Treemap ✅
+		li Partition (Kind of like Treemap)
+	h3 We're gonna do most of these because they're really similar
+section
+	h1 Two types of layouts in D3 v4
+	h2.bullet Not-So-Hierarchical
+	ul
+		li Force-directed stuff ✅
+		li Pie charts ✅
+		li Histograms
+		li Stacked charts ✅
+		li Chord
+	h3 We're only going to do a few of these because of time constraints
+section
+	h3 About the data
+	h4
+		| All data is available on GitHub:
+		br
+		a(href='https://github.com/aendrew/got-presentation') github.com/aendrew/got-presentation
+	ul
+		li
+			em Dataset 1:
+			|  An API of Ice and Fire (characters)
+			ul
+				li
+					+url('github.com/joakimskoog/AnApiOfIceAndFire')
+		li
+			em Dataset 2:
+			|  Time, "Every character who has died on Game Of Thrones"
+			ul
+				li
+					+url('time.com/3924852/every-game-of-thrones-death/')
+		li
+			em Dataset 3:
+			|  Shirin Glander, "Network analysis of Game Of Thrones family ties"
+			ul
+				li
+					+url('shiring.github.io/networks/2017/05/15/got_final')
+		li
+			em Dataset 4:
+			|  Andrew Beveridge, "Network Of Thrones"
+			ul
+				li
+					+url('www.macalester.edu/~abeverid/thrones.html')
+
+section
+	h3 About the data
+	ul
+		li
+			| Dataset 1: An API of Ice and Fire (characters)
+			ul
+				li Flat JSON array of objects
+				li
+					+url('github.com/joakimskoog/AnApiOfIceAndFire')
+			pre.small
+				code.language-json.
+					[
+						{
+							"Id": 12,
+							"Name":"Balon Greyjoy",
+							"IsFemale":false,
+							"Culture":"",
+							"Titles":["Iron King", "King of the Isles and the North",  ... ],
+							"Aliases":["Balon the Brave","Balon the Blessed", ... ],
+							"Born":"",
+							"Died":"299 AC, at Pyke",
+							"Father":836,
+							"Mother":null,
+							"Spouse":66,"
+							Children":[913,718,150,1022],
+							"Allegiances":[],
+							"Books":[1,2,3,5,8],
+							"PovBooks":[],
+							"PlayedBy":["Patrick Malahide"],
+							"TvSeries":["Season 2","Season 3", "Season 6"]
+						},
+					]
+section
+	h3 About the data
+	ul
+		li
+			| Dataset 2: Time, "Every character who has died on Game Of Thrones"
+			ul
+				li JSON array of objects
+				li
+					+url('time.com/3924852/every-game-of-thrones-death/')
+			pre.small
+				code.language-json.
+					{
+						"name": ...
+						"source": ...
+						"data": [
+							{
+								"name": "Will",
+								"role": "Ranger of the Night’s Watch",
+								"death": {
+									"season": 1,
+									"episode": 1
+								},
+								"execution": "Beheaded for desertion by Ned Stark",
+								"likelihoodOfReturn": "0%"
+							},
+							...
+						]
+					}
+section
+	h3 About the data
+	ul
+		li
+			| Dataset 3: Shirin Glander, "Network analysis of Game Of Thrones family ties"
+			ul
+				li Unstratified hierarchy
+				li I manually generated this from the R data files
+					ul
+						li NodeJS script in repo (data/make-got-lineage.js)
+				li
+					+url('shiring.github.io/networks/2017/05/15/got_final')
+			pre.small
+				code.language-json.
+					[
+						{
+							"name":"Alys Arryn",
+							"male":0,
+							"house":"House Arryn",
+							"popularity":0.0803,
+							"shape":"circle",
+							"father":"Jasper Arryn",
+							"mother":"unknown"
+						}
+						...
+					]
+
+section
+	h3 About the data
+	ul
+		li
+			| Dataset 4: Andrew Beveridge, "Network Of Thrones"
+			ul
+				li Traditional network Dataset
+				li Node and Edges
+				li
+					+url('www.macalester.edu/~abeverid/thrones.html')
+			pre.small
+				code.language-json.
+					[
+						{
+							"name":"Alys Arryn",
+							"male":0,
+							"house":"House Arryn",
+							"popularity":0.0803,
+							"shape":"circle",
+							"father":"Jasper Arryn",
+							"mother":"unknown"
+						}
+						...
+					]
+
+
+section
+	h1 A Rininsland always codes his charts¹
+	h5 ¹
+		small Except here I'll mainly just show code samples for the sake of brevity
+	h3 Sorry if this goes way too fast, I have like 3 minutes per chart!
+
+section
+	h2 Preliminary setup
+	h3 Create a factory function that sets up everything
+	pre
+		code.language-javascript.
+			export function chartFactory(selector, chart, opts = {}) {
+				const wrapper = d3.select(selector);
+				const svg = wrapper.append('svg');
+				svg.attr('width', opts.width || wrapper.innerWidth);
+				svg.attr('height', opts.height || wrapper.innerHeight);
+				const container = svg.append('g');
+				const margin = opts.margin || {};
+				container.attr('transform',
+					`translate(${margin.left || 0}, ${margin.top || 0})`);
+				chart.call(container, opts);
+			}
+
+section
+	h3 Pie charts
+	h4 BOOOORING but good for summary data?
+	h5 Let's look at gender from "An API Of Ice And Fire"
+	pre
+		code.language-javascript.
+
+section#demo-pie
+	h3 Pie: gender in Westeros
+	div(style="width: 100%; height: 400px;")#chart-pie.chart
+
+section
+	h3 Stacked charts
+	h4 Good for depicting similar data over time
+	h5 This time, let's look at deaths using the Time dataset
+	pre
+		code.language-javascript.
+
+section#demo-stack
+	h3 Pie: gender in Westeros
+	div(style="width: 100%; height: 400px;")#chart-stack.chart
