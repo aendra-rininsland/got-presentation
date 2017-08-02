@@ -55,7 +55,7 @@ section
 		li Cluster (pretty much the same as Tree)
 		li Treemap ✅
 		li Partition (Kind of like Treemap)
-	h3 We're gonna do most of these because they're really similar
+
 section
 	h1 Two types of layouts in D3 v4
 	h2.bullet Not-So-Hierarchical
@@ -65,7 +65,7 @@ section
 		li Histograms
 		li Stacked charts ✅
 		li Chord
-	h3 We're only going to do a few of these because of time constraints
+
 section
 	h3 About the data
 	h4
@@ -81,13 +81,13 @@ section
 					+url('github.com/joakimskoog/AnApiOfIceAndFire')
 		li
 			em Dataset 2:
-			|  Time, "Every character who has died on Game Of Thrones"
+			|  Time, "Every character who has died on GoT"
 			ul
 				li
 					+url('time.com/3924852/every-game-of-thrones-death/')
 		li
 			em Dataset 3:
-			|  Shirin Glander, "Network analysis of Game Of Thrones family ties"
+			|  Shirin Glander, "Network analysis of GoT family ties"
 			ul
 				li
 					+url('shiring.github.io/networks/2017/05/15/got_final')
@@ -97,6 +97,12 @@ section
 			ul
 				li
 					+url('www.macalester.edu/~abeverid/thrones.html')
+		li
+			em Dataset 5:
+			|  ninewheels0, "Characters by screen time: GoT"
+			ul
+				li
+					+url('www.imdb.com/list/ls076752033/')
 
 section
 	h3 About the data
@@ -195,6 +201,9 @@ section
 				li Node and Edges
 				li
 					+url('www.macalester.edu/~abeverid/thrones.html')
+					ul
+						li I've converted this to JSON for easy use.
+						li NodeJS script in repo (data/make-network-json.js)
 			pre.small
 				code.language-json.
 					[
@@ -210,6 +219,31 @@ section
 						...
 					]
 
+section
+	h3 About the data
+	ul
+		li
+			| Dataset 5: ninewheels0, "Characters by screen time: GoT"
+			ul
+				li Flat JSON blob
+				li
+					+url('www.imdb.com/list/ls076752033/')
+					ul
+						li I've converted this to JSON for easy use.
+			pre.small
+				code.language-json.
+					[
+						{
+						"name": "Tyrion Lannister",
+						"imdbUrl": "http://www.imdb.com/character/ch0146096/",
+						"screentime": 293.3,
+						"episodes": 54,
+						"portrayedBy": {
+						"name": "Peter Dinklage",
+						"imdbUrl": "http://www.imdb.com/name/nm0227759/"
+						}
+						...
+					]
 
 section
 	h1 A Rininsland always codes his charts¹
@@ -253,5 +287,63 @@ section
 		code.language-javascript.
 
 section#demo-stack
-	h3 Pie: gender in Westeros
-	div(style="width: 100%; height: 400px;")#chart-stack.chart
+	h3 Stack (steamgraph): deaths per season by episode
+	div(style="width: 100%; height: 400px;", data-is-stream="true")#chart-stack.chart
+
+section
+	h3 Trees (dendrographs)
+	h4 Good for depicting explicit hierarchies
+	h5 Let's create a Westeros family tree using the lineages dataset
+	pre
+		code.language-javascript.
+
+section#demo-tree
+	h3 Tree (dendrograph): lineages
+	div(style="width: 100%; height: 400px;")#chart-tree.chart
+
+section
+	h3 Force-directed
+	h4 Useful for many things, including non-hierarchical networks
+	h5 Time for a Network Of Thrones!
+	pre
+		code.language-javascript.
+
+section#demo-force
+	h3 Force-directed: character relations
+	div(style="width: 100%; height: 400px;")#chart-force.chart
+
+section
+	h3 Treemap
+	h4 Kinda like pie charts on steroids!
+	h5 How much screen time has each character had?
+	pre
+		code.language-javascript.
+
+section#demo-treemap
+	h3 Treemap: character screentimes
+	div(style="width: 100%; height: 400px;")#chart-treemap.chart
+
+section
+	h3 Bonus: Pack charts
+	h4 Similar to treemaps, but less compact
+	h5 I think they look pretty snazzy, personally!
+	pre
+		code.language-javascript.
+
+section#demo-pack
+	h3 Pack: character screentimes
+	div(style="width: 100%; height: 400px;")#chart-pack.chart
+
+section
+	h2 Wow, that was a lot of charts!
+	h3.bullet D3 layouts are incredibly powerful, even if they're a little confusing to start with
+	h3.bullet They all use similar idioms, however
+
+section
+	h3 Remember: a layout simply helps D3 put shapes in a particular configuration
+
+section
+	h1 Thank you! Questions?
+	h3 Slides and code are online at:
+	br
+	+url('github.com/aendrew/got-presentation')
