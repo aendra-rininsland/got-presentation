@@ -2,7 +2,7 @@ mixin url(href)
 	a(href="//" + href)= href
 
 section.intro
-	h1 A Song Of Ice and Data and Stuff
+	h1 A Song Of Charts and JSON and Stuff
 	h2 Ændrew Rininsland
 	h3
 		| 3 August 2017,
@@ -12,7 +12,8 @@ section.intro
 section
 	h1.bullet $ whoami
 	ul
-		li Earlier this year I released a book about D3
+		li Earlier this year I released
+			a(href="https://www.amazon.co.uk/D3-js-4-x-Data-Visualization-Third-ebook/dp/B01MG90SSJ/") a book about D3 v4
 		li This included copious amounts of Game Of Thrones charts
 		li D3 is a fantastic library for doing rapid data visualisations
 		li
@@ -22,9 +23,9 @@ section
 	h1.bullet I think winter is here?
 	ul
 		li Game of Thrones is really pretty crazy right now
-		li We're into the second-last season
+		li We're into the penultimate season
 		li Lots of plots are converging
-		li I did a lot of Game of Thrones charts in my book...
+		li Did I mention I did a lot of Game of Thrones charts in my book...?
 section
 	h1
 		| ...And now we're going to recreate a bunch of them in rapid-fire succession
@@ -38,7 +39,9 @@ section
 	h2 Preliminary setup
 	h3.bullet I'm assuming you're using Webpack and Babel or some such
 	h3.bullet
-		| A lighter solution is my SystemJS-based `d3-bootloader`, which can transpile ES6 module syntax and includes all of D3 loaded via CDN
+		| A lighter solution is my SystemJS-based&nbsp;
+		u d3-bootloader
+		|, which can transpile ES6 module syntax and includes all of D3 loaded via CDN
 	h4
 		a(href='https://www.npmjs.com/@financial-times/d3-bootloader')
 			| npmjs.com/@financial-times/d3-bootloader
@@ -54,7 +57,7 @@ section
 		li Tree (dendrograph) ✅
 		li Cluster (pretty much the same as Tree)
 		li Treemap ✅
-		li Partition (Kind of like Treemap)
+		li Partition (kinda like Treemap)
 
 section
 	h1 Two types of layouts in D3 v4
@@ -62,7 +65,7 @@ section
 	ul
 		li Force-directed stuff ✅
 		li Pie charts ✅
-		li Histograms
+		li Histograms (this one's really useful but my data doesn't work)
 		li Stacked charts ✅
 		li Chord
 
@@ -206,18 +209,32 @@ section
 						li NodeJS script in repo (data/make-network-json.js)
 			pre.small
 				code.language-json.
-					[
-						{
-							"name":"Alys Arryn",
-							"male":0,
-							"house":"House Arryn",
-							"popularity":0.0803,
-							"shape":"circle",
-							"father":"Jasper Arryn",
-							"mother":"unknown"
-						}
-						...
-					]
+					{
+						nodes: [
+							{
+								"id": "Jaime-Lannister",
+								"label": "Jaime Lannister",
+								"pagerank": "0.015460587",
+								"degree": "101",
+								"weighted degree": "1569",
+								"betweenness": "31825.98727",
+								"modularity_class": "3",
+								"eigencentrality": "0.881689191",
+								"top names": "Jaime"
+							},
+							...
+						],
+						links: [
+							{
+								"Source": "Waymar-Royce",
+								"Target": "Will-(prologue)",
+								"Type": "Undirected",
+								"id": "2819",
+								"weight": "18"
+							},
+							...
+						]
+					}
 
 section
 	h3 About the data
@@ -230,6 +247,7 @@ section
 					+url('www.imdb.com/list/ls076752033/')
 					ul
 						li I've converted this to JSON for easy use.
+						li I've also mashed it up with the lineages to be more useful
 			pre.small
 				code.language-json.
 					[
@@ -335,7 +353,7 @@ section#demo-pack
 	div(style="width: 100%; height: 400px;")#chart-pack.chart
 
 section
-	h2 Wow, that was a lot of charts!
+	h2 That was a lot of charts!
 	h3.bullet D3 layouts are incredibly powerful, even if they're a little confusing to start with
 	h3.bullet They all use similar idioms, however
 

@@ -2,3 +2,7 @@ pre.small {
 	font-size: 50%;
 	line-height: 50%;
 }
+
+.highlighted {
+	stroke: goldenrod;
+}

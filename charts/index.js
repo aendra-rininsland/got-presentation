@@ -28,13 +28,15 @@ export async function pie(opts, color) {
 	`translate(${this.svg.node().clientWidth / 2}, ${this.svg.node().clientHeight / 2})`);
 
 	// Draw
-	chart.selectAll('.arc')
+	const slices = chart.selectAll('.arc')
 	.data(pieData)
 	.enter()
 	.append('path')
 	.attr('d', arc)
 	.classed('arc', true)
-	.attr('fill', d => color(d.data[0]));
+	.attr('fill', d => d.data[0] === 'male' ? 'blue' : 'pink');
+
+	slices.call(tooltip(d => d.data[0], this.container));
 }
 
 export async function stack(opts = {isStream: true}, color) {
@@ -80,7 +82,7 @@ export async function stack(opts = {isStream: true}, color) {
 	.y1(d => y(d[1]))
 	.curve(d3.curveBasis);
 
-	this.container.append('g')
+	const streams = this.container.append('g')
 	.attr('class', 'streams')
 	.selectAll('path')
 	.data(stack(seasons))
@@ -89,10 +91,7 @@ export async function stack(opts = {isStream: true}, color) {
 	.attr('d', area)
 	.style('fill', (d, i) => color(i));
 
-	this.container.append('g')
-	.attr('class', 'axis')
-	.attr('transform', `translate(0,${height})`)
-	.call(d3.axisBottom(x));
+	streams.call(tooltip(d => `Season ${d.index + 1}`, this.container));
 }
 
 export async function tree(opts, color) {
@@ -133,7 +132,7 @@ export async function tree(opts, color) {
 			));
 
 	// Nodes
-	chart.selectAll('.node')
+	const node = chart.selectAll('.node')
 	.data(root.descendants())
 	.enter()
 	.append('circle')
@@ -143,48 +142,47 @@ export async function tree(opts, color) {
 	.attr('class', 'node')
 	.attr('cx', d => d.x)
 	.attr('cy', d => d.y);
+
+	node.call(tooltip(d => d.id, this.container));
 }
 
 export async function force(opts, color) {
-	const nodes = uniques(
-		_data.map(d => d.Target).concat(_data.map(d => d.Source)),
-		d => d)
-		.map(d => ({id: d, total: _data.filter(e => e.Source === d).length}));
+	const data = (await (await fetch('data/network-of-thrones.json')).json());
 
-	fixateColors(nodes, 'id');
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
+	const padding = 2;
 
-	const links = _data.map(d => ({source: d.Source, target: d.Target, value: d.Weight}));
 	const link = this.container.append('g').attr('class', 'links')
 		.selectAll('line')
-		.data(links)
+		.data(data.edges)
 		.enter()
 		.append('line')
-		.attr('stroke', d => color(d.source))
-		.attr('stroke-width', d => Math.sqrt(d.value));
+		.attr('stroke', d => color(d.Source))
+		.attr('stroke-width', d => Math.sqrt(Number(d.weight)));
 
-	const radius = d3.scaleLinear().domain(d3.extent(nodes, d => d.total)).range([4, 20]);
+	const radius = d3.scaleLinear()
+		.domain(d3.extent(data.nodes, d => Number(d.pagerank))).range([4, 20]);
 
 	const node = this.container.append('g').attr('class', 'nodes')
 		.selectAll('circle')
-		.data(nodes)
+		.data(data.nodes)
 		.enter()
 		.append('circle')
-		.attr('r', d => radius(d.total))
-		.attr('fill', d => color(d.id))
+		.attr('r', d => radius(Number(d.pagerank)))
+		.attr('fill', d => color(d.modularity_class))
 		.call(d3.drag()
-		.on('start', dragstart)
-		.on('drag', dragging)
-		.on('end', dragend));
-
-	node.call(tooltip(d => d.id, this.container));
+			.on('start', dragstart)
+			.on('drag', dragging)
+			.on('end', dragend));
 
 	const sim = d3.forceSimulation()
-		.force('link', d3.forceLink().id(d => d.id).distance(200))
-		.force('charge', d3.forceManyBody())
-		.force('center', d3.forceCenter(this.innerWidth / 2, this.innerHeight / 2));
+		.nodes(data.nodes)
+		.force('collide', d3.forceCollide(d => radius(Number(d.pagerank)) + padding))
+		.force('center', d3.forceCenter(width / 2, height / 2))
+		.force('link', d3.forceLink(data.edges).id(d => d.id).distance(10))
+		.on('tick', ticked);
 
-	sim.nodes(nodes).on('tick', ticked);
-	sim.force('link').links(links);
+	node.call(tooltip(d => d.id, this.container));
 
 	function ticked() {
 		link.attr('x1', d => d.source.x)
@@ -219,22 +217,24 @@ export async function force(opts, color) {
 }
 
 export async function treemap(opts, color) {
-	const data = getMajorHouses(_data);
+	const data = await (await fetch('data/lineages-screentimes.json')).json();
+	data.push({name: 'unknown', father: ''}); // Adds root node
+
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
 	const stratify = d3.stratify()
-		.parentId(d => d.fatherLabel)
-		.id(d => d.itemLabel);
+		.parentId(d => d.father)
+		.id(d => d.name);
 
 	const root = stratify(data)
 		.sum(d => d.screentime)
-		.sort(heightOrValueComparator);
+		.sort((a, b) => b.height - a.height || b.value - a.value);
 
 	const cellPadding = 10;
-	const houseColors = color.copy().domain(houseNames(root));
 
 	const layout = d3.treemap()
 		.size([
-			this.innerWidth - 100,
-			this.innerHeight
+			width - 100,
+			height
 		])
 		.padding(cellPadding);
 
@@ -251,35 +251,30 @@ export async function treemap(opts, color) {
 		.attr('y', d => d.y0)
 		.attr('width', d => d.x1 - d.x0)
 		.attr('height', d => d.y1 - d.y0)
-		.attr('fill', d => descendantsDarker(d, color, true));
+		.attr('stroke', 'black')
+		.attr('fill', d => color(d.data.house));
 
-	this.container
-		.append('g')
-		.attr('id', 'legend')
-		.attr('transform', `translate(${this.innerWidth - 100}, ${cellPadding})`)
-		.call(legend.legendColor().scale(houseColors));
-
-	nodes.call(tooltip(d => d.data.itemLabel, this.container));
+	nodes.call(tooltip(d => d.id, this.svg));
 }
 
 export async function pack(opts, color) {
-	const data = getMajorHouses(_data);
+	const data = await (await fetch('data/lineages-screentimes.json')).json();
+	data.push({name: 'unknown', father: ''}); // Adds root node
+
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
 
 	const stratify = d3.stratify()
-		.parentId(d => d.fatherLabel)
-		.id(d => d.itemLabel);
+		.parentId(d => d.father)
+		.id(d => d.name);
 
 	const root = stratify(data)
 		.sum(d => d.screentime)
-		.sort(valueComparator);
-
-	const houseColors = color.copy().domain(houseNames(root));
-	fixateColors(data, 'itemLabel');
+		.sort((a, b) => b.value - a.value);
 
 	const layout = d3.pack()
 		.size([
-			this.innerWidth - 100,
-			this.innerHeight
+			width - 100,
+			height
 		]);
 
 	layout(root);
@@ -292,13 +287,8 @@ export async function pack(opts, color) {
 		.attr('cx', d => d.x)
 		.attr('cy', d => d.y)
 		.attr('r', d => d.r)
-		.attr('fill', d => descendantsDarker(d, color, true, 5));
+		.attr('stroke', d => d3.color(color(d.data.house)).darker())
+		.attr('fill', d => color(d.data.house));
 
-	this.container
-		.append('g')
-		.attr('id', 'legend')
-		.attr('transform', `translate(${this.innerWidth - 100}, ${this.innerHeight / 2})`)
-		.call(legend.legendColor().scale(houseColors));
-
-	nodes.call(tooltip(d => d.data.itemLabel, this.container));
+	nodes.call(tooltip(d => d.id, this.container));
 }

@@ -50,6 +50,7 @@
 		"bespoke-progress": "^1.0.0",
 		"bespoke-scale": "^1.0.1",
 		"bespoke-theme-nebula": "^1.0.1",
+		"d3-force-cluster": "^0.1.2",
 		"prismjs": "^1.6.0",
 		"pug-loader": "^2.3.0"
 	},
@@ -59,7 +60,9 @@
 			"node"
 		],
 		"rules": {
-			"no-sequences": [0]
+			"no-sequences": [
+				0
+			]
 		}
 	}
 }

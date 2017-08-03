@@ -32,6 +32,7 @@ export default function chartFactory(selector, chart, opts = {}) {
  * @return {Function}         Tooltip layout
  */
 export function tooltip(text, chart) {
+
 	return selection => {
 		function mouseover(d) {
 			const path = d3.select(this);
@@ -49,9 +50,9 @@ export function tooltip(text, chart) {
 
 			tool.append('rect')
 			.attr('height', textNode.getBBox().height)
-			.attr('width', textNode.getBBox().width)
+			.attr('width', textNode.getBBox().width + 6)
 			.style('fill', 'rgba(255, 255, 255, 0.6)')
-			.attr('transform', 'translate(0, -16)');
+			.attr('transform', `translate(-3, -23)`);
 
 			tool.select('text')
 			.remove();
