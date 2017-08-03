@@ -1,0 +1,326 @@
+<!DOCTYPE html><html><head><title>Ændrew Rininsland » A Song Of Charts and Stuff</title><meta name="description" content="A theme for Bespoke.js"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta charset="utf-8"></head><body><article id="presentation"><section class="intro"><h1>A Song Of Charts and Stuff</h1><h2>Ændrew Rininsland</h2><h3><img src="images/twitter.svg" style="width: 1em;">&nbsp;&nbsp;@aendrew<br><img src="images/github.svg" style="width: 1em;">&nbsp;&nbsp;&nbsp;aendrew</h3><h4>3 August 2017,<a href="https://www.meetup.com/Visualising-Data-London/">Visualising Data London</a></h4></section><section><h1 class="bullet">$ whoami</h1><ul><li>Earlier this year I released<a href="https://www.amazon.co.uk/D3-js-4-x-Data-Visualization-Third-ebook/dp/B01MG90SSJ/">a book about D3 v4</a></li><li>This included copious amounts of Game Of Thrones charts</li><li>D3 is a fantastic library for doing rapid data visualisations</li><li>I work on an editorial team at the Financial Times that rapidly creates charts for print and digital consumption</li></ul></section><section><h1 class="bullet">I think winter is here?</h1><ul><li>Game of Thrones is really pretty crazy right now</li><li>We're into the penultimate season</li><li>Lots of plots are converging</li><li>Did I mention I did a lot of Game of Thrones charts in my book...?</li></ul></section><section><h1>...And now we're going to recreate a bunch of them in rapid-fire succession<br><em>— or pay the iron price</em></h1></section><section><h2>Preliminary setup</h2><h3 class="bullet">I'm assuming you're using Webpack and Babel or some such</h3><h3 class="bullet">A lighter solution is my SystemJS-based&nbsp;<u>d3-bootloader</u>, which can transpile ES6 module syntax and includes all of D3 loaded via CDN</h3><pre><code class="language-html">&lt;script src="//unpkg.com/@financial-times/d3-bootloader" async&gt;&lt;/script&gt;</code></pre><h3 class="bullet">Put your entry code in a file called "index.js"</h3><h4><a href="https://www.npmjs.com/@financial-times/d3-bootloader">npmjs.com/@financial-times/d3-bootloader</a></h4></section><section><h1>Two types of layouts in D3 v4</h1><h2 class="bullet">Hierarchical</h2><h2 class="bullet">Not-So-Hierarchical</h2></section><section><h1>Two types of layouts in D3 v4</h1><h2 class="bullet">Hierarchical</h2><ul><li>Pack ✅</li><li>Tree (dendrograph) ✅</li><li>Cluster (pretty much the same as Tree)</li><li>Treemap ✅</li><li>Partition (kinda like Treemap)</li></ul></section><section><h1>Two types of layouts in D3 v4</h1><h2 class="bullet">Not-So-Hierarchical</h2><ul><li>Force-directed stuff ✅</li><li>Pie charts ✅</li><li>Histograms (this one's really useful but my data doesn't work)</li><li>Stacked charts ✅</li><li>Chord</li></ul></section><section><h3>About the data</h3><h4>All data is available on GitHub:<br><a href="https://github.com/aendrew/got-presentation">github.com/aendrew/got-presentation</a></h4><ul><li><em>Dataset 1:</em> An API of Ice and Fire (characters)<ul><li><a href="//github.com/joakimskoog/AnApiOfIceAndFire">github.com/joakimskoog/AnApiOfIceAndFire</a></li></ul></li><li><em>Dataset 2:</em> Time, "Every character who has died on GoT"<ul><li><a href="//time.com/3924852/every-game-of-thrones-death/">time.com/3924852/every-game-of-thrones-death/</a></li></ul></li><li><em>Dataset 3:</em> Shirin Glander, "Network analysis of GoT family ties"<ul><li><a href="//shiring.github.io/networks/2017/05/15/got_final">shiring.github.io/networks/2017/05/15/got_final</a></li></ul></li><li><em>Dataset 4:</em> Andrew Beveridge, "Network Of Thrones"<ul><li><a href="//www.macalester.edu/~abeverid/thrones.html">www.macalester.edu/~abeverid/thrones.html</a></li></ul></li><li><em>Dataset 5:</em> ninewheels0, "Characters by screen time: GoT"<ul><li><a href="//www.imdb.com/list/ls076752033/">www.imdb.com/list/ls076752033/</a></li></ul></li></ul></section><section><h3>About the data</h3><ul><li>Dataset 1: An API of Ice and Fire (characters)<ul><li>Flat JSON array of objects</li><li><a href="//github.com/joakimskoog/AnApiOfIceAndFire">github.com/joakimskoog/AnApiOfIceAndFire</a></li></ul><pre class="small"><code class="language-json">[
+	{
+		"Id": 12,
+		"Name":"Balon Greyjoy",
+		"IsFemale":false,
+		"Culture":"",
+		"Titles":["Iron King", "King of the Isles and the North",  ... ],
+		"Aliases":["Balon the Brave","Balon the Blessed", ... ],
+		"Born":"",
+		"Died":"299 AC, at Pyke",
+		"Father":836,
+		"Mother":null,
+		"Spouse":66,"
+		Children":[913,718,150,1022],
+		"Allegiances":[],
+		"Books":[1,2,3,5,8],
+		"PovBooks":[],
+		"PlayedBy":["Patrick Malahide"],
+		"TvSeries":["Season 2","Season 3", "Season 6"]
+	},
+]</code></pre></li></ul></section><section><h3>About the data</h3><ul><li>Dataset 2: Time, "Every character who has died on Game Of Thrones"<ul><li>JSON array of objects</li><li><a href="//time.com/3924852/every-game-of-thrones-death/">time.com/3924852/every-game-of-thrones-death/</a></li></ul><pre class="small"><code class="language-json">{
+	"name": ...
+	"source": ...
+	"data": [
+		{
+			"name": "Will",
+			"role": "Ranger of the Night’s Watch",
+			"death": {
+				"season": 1,
+				"episode": 1
+			},
+			"execution": "Beheaded for desertion by Ned Stark",
+			"likelihoodOfReturn": "0%"
+		},
+		...
+	]
+}</code></pre></li></ul></section><section><h3>About the data</h3><ul><li>Dataset 3: Shirin Glander, "Network analysis of Game Of Thrones family ties"<ul><li>Unstratified hierarchy</li><li>I manually generated this from the R data files<ul><li>NodeJS script in repo (data/make-got-lineage.js)</li></ul></li><li><a href="//shiring.github.io/networks/2017/05/15/got_final">shiring.github.io/networks/2017/05/15/got_final</a></li></ul><pre class="small"><code class="language-json">[
+	{
+		"name":"Alys Arryn",
+		"male":0,
+		"house":"House Arryn",
+		"popularity":0.0803,
+		"shape":"circle",
+		"father":"Jasper Arryn",
+		"mother":"unknown"
+	}
+	...
+]
+</code></pre></li></ul></section><section><h3>About the data</h3><ul><li>Dataset 4: Andrew Beveridge, "Network Of Thrones"<ul><li>Traditional network Dataset</li><li>Node and Edges</li><li><a href="//www.macalester.edu/~abeverid/thrones.html">www.macalester.edu/~abeverid/thrones.html</a><ul><li>I've converted this to JSON for easy use.</li><li>NodeJS script in repo (data/make-network-json.js)</li></ul></li></ul><pre class="small"><code class="language-json">{
+	nodes: [
+		{
+			"id": "Jaime-Lannister",
+			"label": "Jaime Lannister",
+			"pagerank": "0.015460587",
+			"degree": "101",
+			"weighted degree": "1569",
+			"betweenness": "31825.98727",
+			"modularity_class": "3",
+			"eigencentrality": "0.881689191",
+			"top names": "Jaime"
+		},
+		...
+	],
+	links: [
+		{
+			"Source": "Waymar-Royce",
+			"Target": "Will-(prologue)",
+			"Type": "Undirected",
+			"id": "2819",
+			"weight": "18"
+		},
+		...
+	]
+}
+</code></pre></li></ul></section><section><h3>About the data</h3><ul><li>Dataset 5: ninewheels0, "Characters by screen time: GoT"<ul><li>Flat JSON blob</li><li><a href="//www.imdb.com/list/ls076752033/">www.imdb.com/list/ls076752033/</a><ul><li>I've converted this to JSON for easy use.</li><li>I've also mashed it up with the lineages to be more useful</li></ul></li></ul><pre class="small"><code class="language-json">[
+	{
+	"name": "Tyrion Lannister",
+	"imdbUrl": "http://www.imdb.com/character/ch0146096/",
+	"screentime": 293.3,
+	"episodes": 54,
+	"portrayedBy": {
+	"name": "Peter Dinklage",
+	"imdbUrl": "http://www.imdb.com/name/nm0227759/"
+	}
+	...
+]
+</code></pre></li></ul></section><section><h1>A Rininsland always codes his charts¹</h1><h5>¹<small>Except here I'll mainly just show code samples for the sake of brevity</small></h5><h3>Sorry if this goes way too fast, I have like 3 minutes per chart!</h3><h4>(Also, I leave out any interactivity code — but it's in the repo)</h4></section><section><h2>Preliminary setup</h2><h3>Create a factory function that sets up everything</h3><pre class="small"><code class="language-javascript">export default function chartFactory(selector, chart, opts = {}) {
+	const wrapper = d3.select(selector);
+	const svg = wrapper.append('svg');
+	svg.attr('width', opts.width || wrapper.node().clientWidth);
+	svg.attr('height', opts.height || wrapper.node().clientHeight);
+	const container = svg.append('g');
+	const margin = opts.margin || {};
+	container.attr('transform', `translate(${margin.left || 0}, ${margin.top || 0})`);
+	chart.call({wrapper, svg, container}, opts, d3.scaleOrdinal(d3.schemeCategory20));
+}
+</code></pre></section><section><h2>Preliminary setup</h2><h3>chartFactory in depth 1/2</h3><pre><code class="language-javascript">export default function chartFactory(selector, chart, opts = {}) {
+	const wrapper = d3.select(selector);
+	const svg = wrapper.append('svg');
+	svg.attr('width', opts.width || wrapper.node().clientWidth);
+	svg.attr('height', opts.height || wrapper.node().clientHeight);
+
+</code></pre></section><section><h2>Preliminary setup</h2><h3>chartFactory in depth 2/2</h3><pre><code class="language-javascript">	const container = svg.append('g');
+	const margin = opts.margin || {};
+	container.attr('transform',
+		`translate(${margin.left || 0}, ${margin.top || 0})`);
+	chart.call({wrapper, svg, container},
+		opts, d3.scaleOrdinal(d3.schemeCategory20));
+}
+</code></pre></section><section><h3>Pie charts</h3><h4>BOOOORING but good for summary data?</h4><h5>Let's look at gender from "An API Of Ice And Fire"</h5></section><section><h3>Pie charts (code, 1/5)</h3><pre><code class="language-javascript">export async function pie(opts, color) {
+	// Data
+	const data = await (await fetch('../data/AnApiOfIceAndFire.json')).json();
+	const byGender = data.reduce(
+		(col, cur) => (col[cur.IsFemale ? 'female' : 'male']++, col),
+		{male: 0, female: 0}
+	);
+</code></pre></section><section><h3>Pie charts (code, 2/5)</h3><pre><code class="language-javascript">// Initialise generators
+const pie = d3.pie().value(d => d[1]);
+const pieData = pie(Object.entries(byGender))
+	.sort((a, b) => b.data[1] - a.data[1]);
+color.domain(pieData.map(d => d.data[0]));
+</code></pre></section><section><h3>Pie charts (code, 3/5)</h3><pre><code class="language-javascript">const arc = d3.arc()
+	.outerRadius(this.svg.node().clientWidth / 6)
+	.innerRadius(this.svg.node().clientWidth / 6.5);
+</code></pre></section><section><h3>Pie charts (code, 4/5)</h3><pre><code class="language-javascript">const chart = this.container.classed('pie', true)
+	.attr('transform',
+		`translate(${this.svg.node().clientWidth / 2},
+			${this.svg.node().clientHeight / 2})`);
+</code></pre></section><section><h3>Pie charts (code, 5/5)</h3><pre><code class="language-javascript">	const slices = chart.selectAll('.arc')
+	.data(pieData)
+	.enter()
+	.append('path')
+	.attr('d', arc)
+	.classed('arc', true)
+	.attr('fill', d => d.data[0] === 'male' ? 'blue' : 'pink');
+} // end pie
+</code></pre></section><section id="demo-pie"><h3>Pie: gender in Westeros</h3><div class="chart" style="width: 100%; height: 400px;" id="chart-pie"></div></section><section><h3>Stacked charts</h3><h4>Good for depicting similar data over time</h4><h5>This time, let's look at deaths using the Time dataset</h5></section><section><h3>Stacked charts (code, 1/6)</h3><pre><code class="language-javascript">export async function stack(opts = {wiggle: true}, color) {
+	const {data} = await (await fetch('data/deaths-by-season.json')).json();
+	const episodesPerSeason = 10;
+	const totalSeasons = 6;
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
+</code></pre></section><section><h3>Stacked charts (code, 2/6)</h3><pre class="slightly-smaller"><code class="language-javascript">const seasons = d3.nest()
+.key(d => d.death.episode).key(d => d.death.season)
+.entries(data.filter(d => !d.death.isFlashback))
+.map(v => {
+	return d3.range(1, totalSeasons + 1).reduce((item, episodeNumber) => {
+		const deaths = v.values.filter(d => Number(d.key) === episodeNumber).shift() || 0;
+		item[`season-${episodeNumber}`] = deaths ? deaths.values.length : 0;
+		return item;
+	}, {episode: v.key});
+})
+.sort((a, b) => Number(a.episode) - Number(b.episode));
+</code></pre></section><section><h3>Stacked charts (code, 3/6)</h3><pre><code class="language-javascript">const stack = d3.stack()
+	.keys(
+		d3.range(1, totalSeasons + 1)
+			.map(key => `season-${key}`));
+
+if (opts.wiggle === 'true') {
+	stack.offset(d3.stackOffsetWiggle);
+}
+</code></pre></section><section><h3>Stacked charts (code, 4/6)</h3><pre><code class="language-javascript">const x = d3.scaleLinear()
+.domain([1, episodesPerSeason])
+.range([0, width - 20]);
+
+const y = d3.scaleLinear()
+.domain([
+	d3.min(stack(seasons), d => d3.min(d, e => e[0])),
+	d3.max(stack(seasons), d => d3.max(d, e => e[1]))
+]).range([height, 0]);
+</code></pre></section><section><h3>Stacked charts (code, 5/6)</h3><pre><code class="language-javascript">const area = d3.area()
+.x(d => x(d.data.episode))
+.y0(d => y(d[0]))
+.y1(d => y(d[1]))
+.curve(d3.curveBasis);
+</code></pre></section><section><h3>Stacked charts (code, 6/6)</h3><pre><code class="language-javascript">	const streams = this.container.append('g')
+	.attr('class', 'streams')
+	.selectAll('path')
+	.data(stack(seasons))
+		.enter()
+		.append('path')
+		.attr('d', area)
+		.style('fill', (d, i) => color(i));
+} // end stacked
+</code></pre></section><section id="demo-stack"><h3>Stack (streamgraph): deaths per season by episode</h3><div class="chart" style="width: 100%; height: 400px;" data-wiggle="true" id="chart-stack"></div></section><section><h3>Trees (dendrographs)</h3><h4>Good for depicting explicit hierarchies</h4><h5>Let's create a Westeros family tree using the lineages dataset</h5></section><section><h3>Tree charts (code, 1/5)</h3><pre><code class="language-javascript">export async function tree(opts, color) {
+	const data = (await (await fetch('data/got-lineages.json')).json());
+	data.push({name: 'unknown', father: ''}); // Adds root node
+
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
+	const chart = this.container;
+</code></pre></section><section><h3>Tree charts (code, 2/5)</h3><pre><code class="language-javascript">const stratify = d3.stratify()
+	.parentId(d => d.father)
+	.id(d => d.name);
+
+const root = stratify(data);
+</code></pre></section><section><h3>Tree charts (code, 3/5)</h3><pre><code class="language-javascript">const layout = d3.tree()
+	.size([width, height - 20]);
+
+const line = d3.line().curve(d3.curveBasis);
+</code></pre></section><section><h3>Tree charts (code, 4/5)</h3><pre class="slightly-smaller"><code class="language-javascript">const links = layout(root)
+	.descendants()
+	.slice(1);
+chart.selectAll('.link')
+	.data(links)
+	.enter()
+		.append('path')
+		.classed('link', true)
+		.attr('fill', 'none')
+		.attr('stroke', d => color(d.data.house))
+		.attr('d', d => line([ // This bit is admittedly kinda dumb
+			[d.x, d.y], [d.x, (d.y + d.parent.y) / 2],
+			[d.parent.x, (d.y + d.parent.y) / 2], [d.parent.x, d.parent.y]],
+		));
+</code></pre></section><section><h3>Tree charts (code, 5/5)</h3><pre class="slightly-smaller"><code class="language-javascript">const node = chart.selectAll('.node')
+	.data(root.descendants())
+	.enter()
+	.append('circle')
+	.classed('node', true)
+	.attr('r', 4.5)
+	.attr('fill', d => color(d.data.house))
+	.attr('class', 'node')
+	.attr('cx', d => d.x)
+	.attr('cy', d => d.y);
+} // end tree
+</code></pre></section><section id="demo-tree"><h3>Tree (dendrograph): lineages</h3><div class="chart" style="width: 100%; height: 400px;" id="chart-tree"></div></section><section><h3>Force-directed</h3><h4>Useful for many things, including non-hierarchical networks</h4><h5>Time for a Network Of Thrones!</h5><pre><code class="language-javascript"></code></pre></section><section><h3>Force-code (1/6)</h3><pre><code class="language-javascript">export async function force(opts, color) {
+	const data = (await (await fetch('data/network-of-thrones.json')).json());
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
+</code></pre></section><section><h3>Force-code (2/6)</h3><pre><code class="language-javascript">const link = this.container.append('g').attr('class', 'links')
+	.selectAll('line')
+	.data(data.edges)
+	.enter()
+	.append('line')
+	.attr('stroke', d => color(d.Source))
+	.attr('stroke-width', d => Math.sqrt(Number(d.weight)));
+</code></pre></section><section><h3>Force-code (3/6)</h3><pre><code class="language-javascript">const radius = d3.scaleLinear()
+	.domain(d3.extent(data.nodes, d => Number(d.pagerank)))
+	.range([4, 20]);
+</code></pre></section><section><h3>Force-code (4/6)</h3><pre><code class="language-javascript">const node = this.container.append('g').attr('class', 'nodes')
+	.selectAll('circle')
+	.data(data.nodes)
+	.enter()
+	.append('circle')
+	.attr('r', d => radius(Number(d.pagerank)))
+	.attr('fill', d => color(d.modularity_class));
+</code></pre></section><section><h3>Force-code (5/6)</h3><pre><code class="language-javascript">const padding = 2;
+const sim = d3.forceSimulation()
+	.nodes(data.nodes)
+	.force('collide', d3.forceCollide(d => radius(Number(d.pagerank)) + padding))
+	.force('center', d3.forceCenter(width / 2, height / 2))
+	.force('link', d3.forceLink(data.edges).id(d => d.id).distance(10))
+	.on('tick', ticked);
+</code></pre></section><section><h3>Force-code (6/6)</h3><pre><code class="language-javascript">	function ticked() {
+		link.attr('x1', d => d.source.x)
+			.attr('y1', d => d.source.y)
+			.attr('x2', d => d.target.x)
+			.attr('y2', d => d.target.y);
+
+		node.attr('cx', d => d.x)
+			.attr('cy', d => d.y);
+	}
+} // end force
+</code></pre></section><section id="demo-force"><h3>Force-directed: character relations</h3><div class="chart" style="width: 100%; height: 400px;" id="chart-force"></div></section><section><h3>Treemap</h3><h4>Kinda like a super pie chart!</h4><h5>How much screen time has each character had?</h5></section><section><h3>Treemap code (1/5)</h3><pre><code class="language-javascript">export async function treemap(opts, color) {
+	const data = await (await fetch('data/lineages-screentimes.json')).json();
+	data.push({name: 'unknown', father: ''}); // Adds root node
+
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
+</code></pre></section><section><h3>Treemap code (2/5)</h3><pre><code class="language-javascript">const stratify = d3.stratify()
+	.parentId(d => d.father)
+	.id(d => d.name);
+
+const root = stratify(data)
+	.sum(d => d.screentime)
+	.sort((a, b) => b.height - a.height || b.value - a.value);
+</code></pre></section><section><h3>Treemap code (3/5)</h3><pre><code class="language-javascript">const cellPadding = 10;
+
+const layout = d3.treemap()
+	.size([
+		width - 100,
+		height
+	])
+	.padding(cellPadding);
+
+layout(root);
+</code></pre></section><section><h3>Treemap code (4/5)</h3><pre><code class="language-javascript">const nodes = this.container.selectAll('.node')
+	.data(root.descendants().slice(1))
+	.enter()
+	.append('g')
+	.attr('class', 'node');
+</code></pre></section><section><h3>Treemap code (5/5)</h3><pre><code class="language-javascript">	nodes.append('rect')
+		.attr('x', d => d.x0)
+		.attr('y', d => d.y0)
+		.attr('width', d => d.x1 - d.x0)
+		.attr('height', d => d.y1 - d.y0)
+		.attr('stroke', 'black')
+		.attr('fill', d => color(d.data.house));
+} // treemap ends
+</code></pre></section><section id="demo-treemap"><h3>Treemap: character screentimes</h3><div class="chart" style="width: 100%; height: 400px;" id="chart-treemap"></div></section><section><h3>Bonus: Pack charts</h3><h4>Similar to treemaps, but less compact</h4><h5>I think they look pretty snazzy, personally!</h5></section><section><h3>Pack chart code (1/4)</h3><pre><code class="language-javascript">export async function pack(opts, color) {
+	const data = await (await fetch('data/lineages-screentimes.json')).json();
+	data.push({name: 'unknown', father: ''}); // Adds root node
+
+	const {clientHeight: height, clientWidth: width} = this.svg.node();
+</code></pre></section><section><h3>Pack chart code (2/4)</h3><pre><code class="language-javascript">const stratify = d3.stratify()
+	.parentId(d => d.father)
+	.id(d => d.name);
+
+const root = stratify(data)
+	.sum(d => d.screentime)
+	.sort((a, b) => b.value - a.value);
+</code></pre></section><section><h3>Pack chart code (3/4)</h3><pre><code class="language-javascript">const layout = d3.pack()
+	.size([
+		width - 100,
+		height
+	]);
+
+layout(root);
+</code></pre></section><section><h3>Pack chart code (4/4)</h3><pre><code class="language-javascript">	const nodes = this.container.selectAll('.node')
+		.data(root.descendants().slice(1))
+		.enter()
+		.append('circle')
+		.attr('class', 'node')
+		.attr('cx', d => d.x)
+		.attr('cy', d => d.y)
+		.attr('r', d => d.r)
+		.attr('stroke', d => d3.color(color(d.data.house)).darker())
+		.attr('fill', d => color(d.data.house));
+} // pack ends
+</code></pre></section><section id="demo-pack"><h3>Pack: character screentimes</h3><div class="chart" style="width: 100%; height: 400px;" id="chart-pack"></div></section><section><h2>That was a lot of charts!</h2><h3 class="bullet">D3 layouts are incredibly powerful, even if they're a little confusing to start with</h3><h3 class="bullet">They all use similar idioms, however</h3></section><section><h3>Remember: a layout simply helps D3 put shapes in a particular configuration</h3></section><section><h1>Thank you! Questions?</h1><h3>Slides and code are online at:</h3><br><a href="//github.com/aendrew/got-presentation">github.com/aendrew/got-presentation</a></section></article><script type="text/javascript" src="bundle.js"></script></body></html>
