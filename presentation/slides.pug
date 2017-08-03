@@ -2,9 +2,15 @@ mixin url(href)
 	a(href="//" + href)= href
 
 section.intro
-	h1 A Song Of Charts and JSON and Stuff
+	h1 A Song Of Charts and Stuff
 	h2 Ændrew Rininsland
 	h3
+		img(src="images/twitter.svg" style="width: 1em;")
+		| &nbsp;&nbsp;@aendrew
+		br
+		img(src="images/github.svg" style="width: 1em;")
+		| &nbsp;&nbsp;&nbsp;aendrew
+	h4
 		| 3 August 2017,
 		a(href='https://www.meetup.com/Visualising-Data-London/')
 			| Visualising Data London
@@ -32,9 +38,6 @@ section
 		br
 		em — or pay the iron price
 
-section(data-bespoke-backdrop='emphatic')
-	h1 A warning: there might be spoilers if you look too closely at the data
-
 section
 	h2 Preliminary setup
 	h3.bullet I'm assuming you're using Webpack and Babel or some such
@@ -42,6 +45,10 @@ section
 		| A lighter solution is my SystemJS-based&nbsp;
 		u d3-bootloader
 		|, which can transpile ES6 module syntax and includes all of D3 loaded via CDN
+	pre
+		code.language-html.
+			&lt;script src="//unpkg.com/@financial-times/d3-bootloader" async&gt;&lt;/script&gt;
+	h3.bullet Put your entry code in a file called "index.js"
 	h4
 		a(href='https://www.npmjs.com/@financial-times/d3-bootloader')
 			| npmjs.com/@financial-times/d3-bootloader
@@ -455,8 +462,8 @@ section
 			} // end stacked
 
 section#demo-stack
-	h3 Stack (steamgraph): deaths per season by episode
-	div(style="width: 100%; height: 400px;", data-is-stream="true")#chart-stack.chart
+	h3 Stack (streamgraph): deaths per season by episode
+	div(style="width: 100%; height: 400px;", data-wiggle="true")#chart-stack.chart
 
 section
 	h3 Trees (dendrographs)
@@ -577,11 +584,7 @@ section
 				.enter()
 				.append('circle')
 				.attr('r', d => radius(Number(d.pagerank)))
-				.attr('fill', d => color(d.modularity_class))
-				.call(d3.drag()
-					.on('start', dragstart)
-					.on('drag', dragging)
-					.on('end', dragend));
+				.attr('fill', d => color(d.modularity_class));
 
 section
 	h3 Force-code (5/6)

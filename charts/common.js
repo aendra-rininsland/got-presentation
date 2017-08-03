@@ -32,7 +32,6 @@ export default function chartFactory(selector, chart, opts = {}) {
  * @return {Function}         Tooltip layout
  */
 export function tooltip(text, chart) {
-
 	return selection => {
 		function mouseover(d) {
 			const path = d3.select(this);
