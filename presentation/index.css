@@ -3,6 +3,11 @@ pre.small {
 	line-height: 50%;
 }
 
+pre.slightly-smaller {
+	font-size: 75%;
+	line-height: 75%;
+}
+
 .highlighted {
 	stroke: goldenrod;
 }

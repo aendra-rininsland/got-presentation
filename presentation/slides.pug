@@ -268,30 +268,105 @@ section
 	h5 ¹
 		small Except here I'll mainly just show code samples for the sake of brevity
 	h3 Sorry if this goes way too fast, I have like 3 minutes per chart!
+	h4 (Also, I leave out any interactivity code — but it's in the repo)
 
 section
 	h2 Preliminary setup
 	h3 Create a factory function that sets up everything
-	pre
+	pre.small
 		code.language-javascript.
-			export function chartFactory(selector, chart, opts = {}) {
+			export default function chartFactory(selector, chart, opts = {}) {
 				const wrapper = d3.select(selector);
 				const svg = wrapper.append('svg');
-				svg.attr('width', opts.width || wrapper.innerWidth);
-				svg.attr('height', opts.height || wrapper.innerHeight);
+				svg.attr('width', opts.width || wrapper.node().clientWidth);
+				svg.attr('height', opts.height || wrapper.node().clientHeight);
+				const container = svg.append('g');
+				const margin = opts.margin || {};
+				container.attr('transform', `translate(${margin.left || 0}, ${margin.top || 0})`);
+				chart.call({wrapper, svg, container}, opts, d3.scaleOrdinal(d3.schemeCategory20));
+			}
+
+section
+	h2 Preliminary setup
+	h3 chartFactory in depth 1/2
+	pre
+		code.language-javascript.
+			export default function chartFactory(selector, chart, opts = {}) {
+				const wrapper = d3.select(selector);
+				const svg = wrapper.append('svg');
+				svg.attr('width', opts.width || wrapper.node().clientWidth);
+				svg.attr('height', opts.height || wrapper.node().clientHeight);
+
+
+section
+	h2 Preliminary setup
+	h3 chartFactory in depth 2/2
+	pre
+		code.language-javascript.
 				const container = svg.append('g');
 				const margin = opts.margin || {};
 				container.attr('transform',
 					`translate(${margin.left || 0}, ${margin.top || 0})`);
-				chart.call(container, opts);
+				chart.call({wrapper, svg, container},
+					opts, d3.scaleOrdinal(d3.schemeCategory20));
 			}
 
 section
 	h3 Pie charts
 	h4 BOOOORING but good for summary data?
 	h5 Let's look at gender from "An API Of Ice And Fire"
+
+section
+	h3 Pie charts (code, 1/5)
 	pre
 		code.language-javascript.
+			export async function pie(opts, color) {
+				// Data
+				const data = await (await fetch('../data/AnApiOfIceAndFire.json')).json();
+				const byGender = data.reduce(
+					(col, cur) => (col[cur.IsFemale ? 'female' : 'male']++, col),
+					{male: 0, female: 0}
+				);
+
+section
+	h3 Pie charts (code, 2/5)
+	pre
+		code.language-javascript.
+			// Initialise generators
+			const pie = d3.pie().value(d => d[1]);
+			const pieData = pie(Object.entries(byGender))
+				.sort((a, b) => b.data[1] - a.data[1]);
+			color.domain(pieData.map(d => d.data[0]));
+
+section
+	h3 Pie charts (code, 3/5)
+	pre
+		code.language-javascript.
+			const arc = d3.arc()
+				.outerRadius(this.svg.node().clientWidth / 6)
+				.innerRadius(this.svg.node().clientWidth / 6.5);
+
+section
+	h3 Pie charts (code, 4/5)
+	pre
+		code.language-javascript.
+			const chart = this.container.classed('pie', true)
+				.attr('transform',
+					`translate(${this.svg.node().clientWidth / 2},
+						${this.svg.node().clientHeight / 2})`);
+
+section
+	h3 Pie charts (code, 5/5)
+	pre
+		code.language-javascript.
+				const slices = chart.selectAll('.arc')
+				.data(pieData)
+				.enter()
+				.append('path')
+				.attr('d', arc)
+				.classed('arc', true)
+				.attr('fill', d => d.data[0] === 'male' ? 'blue' : 'pink');
+			} // end pie
 
 section#demo-pie
 	h3 Pie: gender in Westeros
@@ -301,8 +376,83 @@ section
 	h3 Stacked charts
 	h4 Good for depicting similar data over time
 	h5 This time, let's look at deaths using the Time dataset
+
+section
+	h3 Stacked charts (code, 1/6)
 	pre
 		code.language-javascript.
+			export async function stack(opts = {wiggle: true}, color) {
+				const {data} = await (await fetch('data/deaths-by-season.json')).json();
+				const episodesPerSeason = 10;
+				const totalSeasons = 6;
+				const {clientHeight: height, clientWidth: width} = this.svg.node();
+
+section
+	h3 Stacked charts (code, 2/6)
+	pre.slightly-smaller
+		code.language-javascript.
+			const seasons = d3.nest()
+			.key(d => d.death.episode).key(d => d.death.season)
+			.entries(data.filter(d => !d.death.isFlashback))
+			.map(v => {
+				return d3.range(1, totalSeasons + 1).reduce((item, episodeNumber) => {
+					const deaths = v.values.filter(d => Number(d.key) === episodeNumber).shift() || 0;
+					item[`season-${episodeNumber}`] = deaths ? deaths.values.length : 0;
+					return item;
+				}, {episode: v.key});
+			})
+			.sort((a, b) => Number(a.episode) - Number(b.episode));
+
+section
+	h3 Stacked charts (code, 3/6)
+	pre
+		code.language-javascript.
+			const stack = d3.stack()
+				.keys(
+					d3.range(1, totalSeasons + 1)
+						.map(key => `season-${key}`));
+
+			if (opts.wiggle === 'true') {
+				stack.offset(d3.stackOffsetWiggle);
+			}
+
+section
+	h3 Stacked charts (code, 4/6)
+	pre
+		code.language-javascript.
+			const x = d3.scaleLinear()
+			.domain([1, episodesPerSeason])
+			.range([0, width - 20]);
+
+			const y = d3.scaleLinear()
+			.domain([
+				d3.min(stack(seasons), d => d3.min(d, e => e[0])),
+				d3.max(stack(seasons), d => d3.max(d, e => e[1]))
+			]).range([height, 0]);
+
+section
+	h3 Stacked charts (code, 5/6)
+	pre
+		code.language-javascript.
+			const area = d3.area()
+			.x(d => x(d.data.episode))
+			.y0(d => y(d[0]))
+			.y1(d => y(d[1]))
+			.curve(d3.curveBasis);
+
+section
+	h3 Stacked charts (code, 6/6)
+	pre
+		code.language-javascript.
+				const streams = this.container.append('g')
+				.attr('class', 'streams')
+				.selectAll('path')
+				.data(stack(seasons))
+					.enter()
+					.append('path')
+					.attr('d', area)
+					.style('fill', (d, i) => color(i));
+			} // end stacked
 
 section#demo-stack
 	h3 Stack (steamgraph): deaths per season by episode
@@ -312,8 +462,71 @@ section
 	h3 Trees (dendrographs)
 	h4 Good for depicting explicit hierarchies
 	h5 Let's create a Westeros family tree using the lineages dataset
+
+section
+	h3 Tree charts (code, 1/5)
 	pre
 		code.language-javascript.
+			export async function tree(opts, color) {
+				const data = (await (await fetch('data/got-lineages.json')).json());
+				data.push({name: 'unknown', father: ''}); // Adds root node
+
+				const {clientHeight: height, clientWidth: width} = this.svg.node();
+				const chart = this.container;
+
+section
+	h3 Tree charts (code, 2/5)
+	pre
+		code.language-javascript.
+			const stratify = d3.stratify()
+				.parentId(d => d.father)
+				.id(d => d.name);
+
+			const root = stratify(data);
+
+section
+	h3 Tree charts (code, 3/5)
+	pre
+		code.language-javascript.
+			const layout = d3.tree()
+				.size([width, height - 20]);
+
+			const line = d3.line().curve(d3.curveBasis);
+
+section
+	h3 Tree charts (code, 4/5)
+	pre.slightly-smaller
+		code.language-javascript.
+			const links = layout(root)
+				.descendants()
+				.slice(1);
+			chart.selectAll('.link')
+				.data(links)
+				.enter()
+					.append('path')
+					.classed('link', true)
+					.attr('fill', 'none')
+					.attr('stroke', d => color(d.data.house))
+					.attr('d', d => line([ // This bit is admittedly kinda dumb
+						[d.x, d.y], [d.x, (d.y + d.parent.y) / 2],
+						[d.parent.x, (d.y + d.parent.y) / 2], [d.parent.x, d.parent.y]],
+					));
+
+section
+	h3 Tree charts (code, 5/5)
+	pre.slightly-smaller
+		code.language-javascript.
+			const node = chart.selectAll('.node')
+				.data(root.descendants())
+				.enter()
+				.append('circle')
+				.classed('node', true)
+				.attr('r', 4.5)
+				.attr('fill', d => color(d.data.house))
+				.attr('class', 'node')
+				.attr('cx', d => d.x)
+				.attr('cy', d => d.y);
+			} // end tree
 
 section#demo-tree
 	h3 Tree (dendrograph): lineages
@@ -326,16 +539,145 @@ section
 	pre
 		code.language-javascript.
 
+section
+	h3 Force-code (1/6)
+	pre
+		code.language-javascript.
+			export async function force(opts, color) {
+				const data = (await (await fetch('data/network-of-thrones.json')).json());
+				const {clientHeight: height, clientWidth: width} = this.svg.node();
+
+section
+	h3 Force-code (2/6)
+	pre
+		code.language-javascript.
+			const link = this.container.append('g').attr('class', 'links')
+				.selectAll('line')
+				.data(data.edges)
+				.enter()
+				.append('line')
+				.attr('stroke', d => color(d.Source))
+				.attr('stroke-width', d => Math.sqrt(Number(d.weight)));
+
+section
+	h3 Force-code (3/6)
+	pre
+		code.language-javascript.
+			const radius = d3.scaleLinear()
+				.domain(d3.extent(data.nodes, d => Number(d.pagerank)))
+				.range([4, 20]);
+
+section
+	h3 Force-code (4/6)
+	pre
+		code.language-javascript.
+			const node = this.container.append('g').attr('class', 'nodes')
+				.selectAll('circle')
+				.data(data.nodes)
+				.enter()
+				.append('circle')
+				.attr('r', d => radius(Number(d.pagerank)))
+				.attr('fill', d => color(d.modularity_class))
+				.call(d3.drag()
+					.on('start', dragstart)
+					.on('drag', dragging)
+					.on('end', dragend));
+
+section
+	h3 Force-code (5/6)
+	pre
+		code.language-javascript.
+			const padding = 2;
+			const sim = d3.forceSimulation()
+				.nodes(data.nodes)
+				.force('collide', d3.forceCollide(d => radius(Number(d.pagerank)) + padding))
+				.force('center', d3.forceCenter(width / 2, height / 2))
+				.force('link', d3.forceLink(data.edges).id(d => d.id).distance(10))
+				.on('tick', ticked);
+
+section
+	h3 Force-code (6/6)
+	pre
+		code.language-javascript.
+				function ticked() {
+					link.attr('x1', d => d.source.x)
+						.attr('y1', d => d.source.y)
+						.attr('x2', d => d.target.x)
+						.attr('y2', d => d.target.y);
+
+					node.attr('cx', d => d.x)
+						.attr('cy', d => d.y);
+				}
+			} // end force
+
 section#demo-force
 	h3 Force-directed: character relations
 	div(style="width: 100%; height: 400px;")#chart-force.chart
 
 section
 	h3 Treemap
-	h4 Kinda like pie charts on steroids!
+	h4 Kinda like a super pie chart!
 	h5 How much screen time has each character had?
+
+section
+	h3 Treemap code (1/5)
 	pre
 		code.language-javascript.
+			export async function treemap(opts, color) {
+				const data = await (await fetch('data/lineages-screentimes.json')).json();
+				data.push({name: 'unknown', father: ''}); // Adds root node
+
+				const {clientHeight: height, clientWidth: width} = this.svg.node();
+
+section
+	h3 Treemap code (2/5)
+	pre
+		code.language-javascript.
+			const stratify = d3.stratify()
+				.parentId(d => d.father)
+				.id(d => d.name);
+
+			const root = stratify(data)
+				.sum(d => d.screentime)
+				.sort((a, b) => b.height - a.height || b.value - a.value);
+
+section
+	h3 Treemap code (3/5)
+	pre
+		code.language-javascript.
+			const cellPadding = 10;
+
+			const layout = d3.treemap()
+				.size([
+					width - 100,
+					height
+				])
+				.padding(cellPadding);
+
+			layout(root);
+
+section
+	h3 Treemap code (4/5)
+	pre
+		code.language-javascript.
+			const nodes = this.container.selectAll('.node')
+				.data(root.descendants().slice(1))
+				.enter()
+				.append('g')
+				.attr('class', 'node');
+
+section
+	h3 Treemap code (5/5)
+	pre
+		code.language-javascript.
+				nodes.append('rect')
+					.attr('x', d => d.x0)
+					.attr('y', d => d.y0)
+					.attr('width', d => d.x1 - d.x0)
+					.attr('height', d => d.y1 - d.y0)
+					.attr('stroke', 'black')
+					.attr('fill', d => color(d.data.house));
+			} // treemap ends
 
 section#demo-treemap
 	h3 Treemap: character screentimes
@@ -345,8 +687,56 @@ section
 	h3 Bonus: Pack charts
 	h4 Similar to treemaps, but less compact
 	h5 I think they look pretty snazzy, personally!
+
+section
+	h3 Pack chart code (1/4)
 	pre
 		code.language-javascript.
+			export async function pack(opts, color) {
+				const data = await (await fetch('data/lineages-screentimes.json')).json();
+				data.push({name: 'unknown', father: ''}); // Adds root node
+
+				const {clientHeight: height, clientWidth: width} = this.svg.node();
+
+section
+	h3 Pack chart code (2/4)
+	pre
+		code.language-javascript.
+			const stratify = d3.stratify()
+				.parentId(d => d.father)
+				.id(d => d.name);
+
+			const root = stratify(data)
+				.sum(d => d.screentime)
+				.sort((a, b) => b.value - a.value);
+
+section
+	h3 Pack chart code (3/4)
+	pre
+		code.language-javascript.
+			const layout = d3.pack()
+				.size([
+					width - 100,
+					height
+				]);
+
+			layout(root);
+
+section
+	h3 Pack chart code (4/4)
+	pre
+		code.language-javascript.
+				const nodes = this.container.selectAll('.node')
+					.data(root.descendants().slice(1))
+					.enter()
+					.append('circle')
+					.attr('class', 'node')
+					.attr('cx', d => d.x)
+					.attr('cy', d => d.y)
+					.attr('r', d => d.r)
+					.attr('stroke', d => d3.color(color(d.data.house)).darker())
+					.attr('fill', d => color(d.data.house));
+			} // pack ends
 
 section#demo-pack
 	h3 Pack: character screentimes

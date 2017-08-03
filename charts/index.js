@@ -7,7 +7,7 @@ import {tooltip} from './common';
 
 export async function pie(opts, color) {
 	// Data
-	const data = await (await fetch('../data/AnApiOfIceAndFire.characters.json')).json();
+	const data = await (await fetch('../data/AnApiOfIceAndFire.json')).json();
 	const byGender = data.reduce(
 		(col, cur) => (col[cur.IsFemale ? 'female' : 'male']++, col),
 		{male: 0, female: 0}
@@ -39,7 +39,7 @@ export async function pie(opts, color) {
 	slices.call(tooltip(d => d.data[0], this.container));
 }
 
-export async function stack(opts = {isStream: true}, color) {
+export async function stack(opts = {wiggle: true}, color) {
 	const {data} = await (await fetch('data/deaths-by-season.json')).json();
 	const episodesPerSeason = 10;
 	const totalSeasons = 6;
@@ -61,7 +61,7 @@ export async function stack(opts = {isStream: true}, color) {
 	const stack = d3.stack()
 	.keys(d3.range(1, totalSeasons + 1).map(key => `season-${key}`));
 
-	if (opts.isStream === 'true') {
+	if (opts.wiggle === 'true') {
 		stack.offset(d3.stackOffsetWiggle);
 	}
 
@@ -148,9 +148,7 @@ export async function tree(opts, color) {
 
 export async function force(opts, color) {
 	const data = (await (await fetch('data/network-of-thrones.json')).json());
-
 	const {clientHeight: height, clientWidth: width} = this.svg.node();
-	const padding = 2;
 
 	const link = this.container.append('g').attr('class', 'links')
 		.selectAll('line')
@@ -175,6 +173,7 @@ export async function force(opts, color) {
 			.on('drag', dragging)
 			.on('end', dragend));
 
+	const padding = 2;
 	const sim = d3.forceSimulation()
 		.nodes(data.nodes)
 		.force('collide', d3.forceCollide(d => radius(Number(d.pagerank)) + padding))
@@ -221,6 +220,7 @@ export async function treemap(opts, color) {
 	data.push({name: 'unknown', father: ''}); // Adds root node
 
 	const {clientHeight: height, clientWidth: width} = this.svg.node();
+
 	const stratify = d3.stratify()
 		.parentId(d => d.father)
 		.id(d => d.name);
