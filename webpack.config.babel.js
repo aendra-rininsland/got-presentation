@@ -11,7 +11,7 @@ module.exports = async (env = {}) => ({
 	},
 	output: {
 		filename: env.production ? '[name].[hash].js' : '[name].js',
-		path: resolve(__dirname, 'dist')
+		path: resolve(__dirname, 'docs')
 	},
 	module: {
 		rules: [
