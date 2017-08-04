@@ -5,6 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "webpack-dev-server",
+		"build": "webpack",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"babel": {
@@ -32,6 +33,7 @@
 		"babel-preset-es2017": "^6.24.1",
 		"babel-preset-stage-0": "^6.24.1",
 		"babel-register": "^6.24.1",
+		"copy-webpack-plugin": "^4.0.1",
 		"css-loader": "^0.28.4",
 		"d3": "^4.10.0",
 		"html-webpack-plugin": "^2.30.1",

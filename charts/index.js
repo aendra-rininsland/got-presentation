@@ -7,7 +7,7 @@ import {tooltip} from './common';
 
 export async function pie(opts, color) {
 	// Data
-	const data = await (await fetch('../data/AnApiOfIceAndFire.json')).json();
+	const data = await (await fetch('data/AnApiOfIceAndFire.json')).json();
 	const byGender = data.reduce(
 		(col, cur) => (col[cur.IsFemale ? 'female' : 'male']++, col),
 		{male: 0, female: 0}
