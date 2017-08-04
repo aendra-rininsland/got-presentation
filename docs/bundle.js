@@ -20695,14 +20695,14 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function chartFactory(selector, chart) {
 	var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-	var wrapper = d3.select(selector);
-	var svg = wrapper.append('svg');
-	svg.attr('width', opts.width || wrapper.node().clientWidth);
-	svg.attr('height', opts.height || wrapper.node().clientHeight);
-	var container = svg.append('g');
-	var margin = opts.margin || {};
-	container.attr('transform', 'translate(' + (margin.left || 0) + ', ' + (margin.top || 0) + ')');
-	chart.call({ wrapper: wrapper, svg: svg, container: container }, opts, d3.scaleOrdinal(d3.schemeCategory20));
+	var wrapper = d3.select(selector); // Create a selection using the selector string
+	var svg = wrapper.append('svg'); // Append a SVG element...
+	svg.attr('width', opts.width || wrapper.node().clientWidth); // ...and set its width/height via
+	svg.attr('height', opts.height || wrapper.node().clientHeight); // ...the wrapper's client properties
+	var container = svg.append('g'); // Add a group container
+	var margin = opts.margin || {}; // Get margins from function arg
+	container.attr('transform', 'translate(' + (margin.left || 0) + ', ' + (margin.top || 0) + ')'); // Translate to margins
+	chart.call({ wrapper: wrapper, svg: svg, container: container }, opts, d3.scaleOrdinal(d3.schemeCategory20)); // Instantiate chart w/ color scale
 }
 
 /**
@@ -20716,34 +20716,50 @@ function chartFactory(selector, chart) {
 */
 
 function tooltip(text, chart) {
+	// Return a function that gets called on every element of the selection
 	return function (selection) {
+		/**
+   * Event callback for hover state
+   * @param  {Object|Array} d Datum for the item being hovered
+   * @return {void}
+   */
 		function mouseover(d) {
 			var path = d3.select(this);
-			path.classed('highlighted', true);
+			path.classed('highlighted', true); // Add highlighted class to current hovered element
 
-			var mouse = d3.mouse(chart.node());
-			var tool = chart.append('g').attr('id', 'tooltip').attr('transform', 'translate(' + (mouse[0] + 5) + ',' + (mouse[1] + 10) + ')');
+			var mouse = d3.mouse(chart.node()); // Get the mouse coords aligned with target chart element
+			var tool = chart.append('g') // Append a group...
+			.attr('id', 'tooltip').attr('transform', 'translate(' + (mouse[0] + 5) + ',' + (mouse[1] + 10) + ')'); // ... and translate to mouse coords
 
-			var textNode = tool.append('text').text(text(d)).attr('fill', 'black').node();
+			var textNode = tool.append('text') // Add the tooltip text to the group
+			.text(text(d)).attr('fill', 'black').node(); // Get its node from selection because we need its bounding box below.
 
-			tool.append('rect').attr('height', textNode.getBBox().height).attr('width', textNode.getBBox().width + 6).style('fill', 'rgba(255, 255, 255, 0.6)').attr('transform', 'translate(-3, -23)');
-
-			tool.select('text').remove();
-
-			tool.append('text').text(text(d));
+			tool.append('rect').attr('height', textNode.getBBox().height) // Set background to the dimensions of text box
+			.attr('width', textNode.getBBox().width + 6) // The six here is pretty arbitrary
+			.style('fill', 'rgba(255, 255, 255, 0.6)').attr('transform', 'translate(-3, -23)') // These are also arbitrary; I had to play with them to get text centered.
+			.lower(); // Move this behind the text — SVG stacking order is important!
 		}
 
+		/**
+   * Move tooltip to new mouse position
+   * @return {void}
+   */
 		function mousemove() {
 			var mouse = d3.mouse(chart.node());
 			d3.select('#tooltip').attr('transform', 'translate(' + (mouse[0] + 15) + ',' + (mouse[1] + 20) + ')');
 		}
 
+		/**
+   * Remove tooltip when no longer hovering stuff
+   * @return {void}
+   */
 		function mouseout() {
 			var path = d3.select(this);
 			path.classed('highlighted', false);
 			d3.select('#tooltip').remove();
 		}
 
+		// Set up the above callbacks as mouse events
 		selection.on('mouseover.tooltip', mouseover).on('mousemove.tooltip', mousemove).on('mouseout.tooltip', mouseout);
 	};
 }
@@ -25715,6 +25731,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var deck = _bespoke2.default.from('#presentation', [(0, _bespokeKeys2.default)(), (0, _bespokeBullets2.default)(), (0, _bespokeScale2.default)(), (0, _bespokeProgress2.default)(), (0, _bespokeHash2.default)(), (0, _bespokeThemeNebula2.default)()]);
 
+// The below instantiates and destroys the charts when navigated to and from, respectively.
+// Each "demo" slide has ID #demo-chartName, with the container having ID #chart-chartName.
+// "chartName" corresponds to the function defined in charts/index.js.
+
 deck.on('activate', function (e) {
 	if (e.slide.id.indexOf('demo-') !== -1) {
 		var _e$slide$id$split = e.slide.id.split('-'),
@@ -26133,6 +26153,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.pack = exports.treemap = exports.force = exports.tree = exports.stack = exports.pie = undefined;
 
+/**
+ * Pie chart!
+ * @param  {Object} opts  Options object
+ * @param  {d3Scale} color D3 color Scale
+ * @return {void}
+ */
 var pie = exports.pie = function () {
 	var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(opts, color) {
 		var data, byGender, pie, pieData, arc, chart, slices;
@@ -26141,7 +26167,7 @@ var pie = exports.pie = function () {
 				switch (_context.prev = _context.next) {
 					case 0:
 						_context.next = 2;
-						return fetch('data/AnApiOfIceAndFire.json');
+						return fetch('../data/AnApiOfIceAndFire.json');
 
 					case 2:
 						_context.next = 4;
@@ -26149,9 +26175,18 @@ var pie = exports.pie = function () {
 
 					case 4:
 						data = _context.sent;
+
+
+						// The above is equivalent to:
+						// fetch('../data/AnApiOfIceAndFire.json')
+						// .then(res => res.json())
+						// .then(data => {
+						//     // Here's where we'd do stuff with `data`
+						// })
+
 						byGender = data.reduce(function (col, cur) {
 							return col[cur.IsFemale ? 'female' : 'male']++, col;
-						}, { male: 0, female: 0 });
+						}, { male: 0, female: 0 }); // Creates object of format `{male: x, female: y}`
 
 						// Initialise generators
 
@@ -26166,19 +26201,21 @@ var pie = exports.pie = function () {
 							return d.data[0];
 						}));
 
-						arc = d3.arc().outerRadius(this.svg.node().clientWidth / 6).innerRadius(this.svg.node().clientWidth / 6.5);
+						// Arc generators for the slices...
+						arc = d3.arc().outerRadius(this.svg.node().clientWidth / 6) // These numbers are arbitrary and chosen for aesthetics
+						.innerRadius(this.svg.node().clientWidth / 6.5);
 						chart = this.container.classed('pie', true).attr('transform', 'translate(' + this.svg.node().clientWidth / 2 + ', ' + this.svg.node().clientHeight / 2 + ')');
 
 						// Draw
 
-						slices = chart.selectAll('.arc').data(pieData).enter().append('path').attr('d', arc).classed('arc', true).attr('fill', function (d) {
+						slices = chart.selectAll('.arc').data(pieData).enter().append('path').attr('d', arc) // We pass our data to our arc generator, which gives us back a long unintelligible string
+						.classed('arc', true).attr('fill', function (d) {
 							return d.data[0] === 'male' ? 'blue' : 'pink';
-						});
-
+						}); // Booo stereotypical gendered colours
 
 						slices.call((0, _common.tooltip)(function (d) {
 							return d.data[0];
-						}, this.container));
+						}, this.container)); // Instantiates tooltip factory on each slice
 
 					case 13:
 					case 'end':
@@ -26192,6 +26229,14 @@ var pie = exports.pie = function () {
 		return _ref.apply(this, arguments);
 	};
 }();
+
+/**
+ * Streamgraph!
+ * @param  {Object} [opts={wiggle: true}]     Options
+ * @param  {d3Scale} color                    Colour scale
+ * @return {void}
+ */
+
 
 var stack = exports.stack = function () {
 	var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
@@ -26216,7 +26261,13 @@ var stack = exports.stack = function () {
 						data = _ref3.data;
 						episodesPerSeason = 10;
 						totalSeasons = 6;
+						// We get the width and height from the SVG node, where they're defined.
+
 						_svg$node = this.svg.node(), height = _svg$node.clientHeight, width = _svg$node.clientWidth;
+
+						// In the following, we effectively create an array of episodes set at the child of each season.
+						// D3 nest is confusing. Here's a good tutorial: http://learnjsdata.com/group_data.html
+
 						seasons = d3.nest().key(function (d) {
 							return d.death.episode;
 						}).key(function (d) {
@@ -26234,16 +26285,23 @@ var stack = exports.stack = function () {
 						}).sort(function (a, b) {
 							return Number(a.episode) - Number(b.episode);
 						});
+
+						// Instantiates our stack generator
+
 						stack = d3.stack().keys(d3.range(1, totalSeasons + 1).map(function (key) {
 							return 'season-' + key;
 						}));
 
 
-						if (opts.wiggle === 'true') {
-							stack.offset(d3.stackOffsetWiggle);
+						if (['true', true].indexOf(opts.wiggle) > -1) {
+							stack.offset(d3.stackOffsetWiggle); // Wiggle offset makes a stacked area into a streamgraph
 						}
 
+						// X-axis is the episode number
 						x = d3.scaleLinear().domain([1, episodesPerSeason]).range([0, width - 20]);
+
+						// Y-axis is the season
+
 						y = d3.scaleLinear().domain([d3.min(stack(seasons), function (d) {
 							return d3.min(d, function (e) {
 								return e[0];
@@ -26253,17 +26311,22 @@ var stack = exports.stack = function () {
 								return e[1];
 							});
 						})]).range([height, 0]);
+
+						// Create our area generator
+
 						area = d3.area().x(function (d) {
 							return x(d.data.episode);
 						}).y0(function (d) {
 							return y(d[0]);
 						}).y1(function (d) {
 							return y(d[1]);
-						}).curve(d3.curveBasis);
+						}).curve(d3.curveBasis); // Make the interpolation nice 'n' curvy
+
+						// Draw them into the chart
+
 						streams = this.container.append('g').attr('class', 'streams').selectAll('path').data(stack(seasons)).enter().append('path').attr('d', area).style('fill', function (d, i) {
 							return color(i);
-						});
-
+						}); // Color using the scale provided by function arg
 
 						streams.call((0, _common.tooltip)(function (d) {
 							return 'Season ' + (d.index + 1);
@@ -26281,6 +26344,14 @@ var stack = exports.stack = function () {
 		return _ref2.apply(this, arguments);
 	};
 }();
+
+/**
+ * Tidytrees!
+ * @param  {Object} opts   Options
+ * @param  {d3Scale} color D3 colour scale
+ * @return {void}
+ */
+
 
 var tree = exports.tree = function () {
 	var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(opts, color) {
@@ -26302,30 +26373,43 @@ var tree = exports.tree = function () {
 
 						data.push({ name: 'unknown', father: '' }); // Adds root node
 
+						// Set up the width and height!
 						_svg$node2 = this.svg.node(), height = _svg$node2.clientHeight, width = _svg$node2.clientWidth;
 						chart = this.container;
+
+						// Create a stratify generator, using the "father" attribute as the parent ID
+
 						stratify = d3.stratify().parentId(function (d) {
 							return d.father;
 						}).id(function (d) {
 							return d.name;
+						}); // Use the name attribute as each node's ID
+
+						root = stratify(data); // Using the stratify generator, turn data into a tree
+
+						layout = d3.tree() // Instantiate the dendrograph layout!
+						.size([width, height - 20]);
+
+						// Creates a line generator for the links. I was complaining that there wasn't a good way of
+						// doing this and it required some voodoo; it seems they've recently added d3.linkVertical!
+
+						line = d3.linkVertical().x(function (d) {
+							return d.x;
+						}).y(function (d) {
+							return d.y;
 						});
-						root = stratify(data);
-						layout = d3.tree().size([width, height - 20]);
-						line = d3.line().curve(d3.curveBasis);
 
-						// Links
+						// Calculate the link between each node
 
-						links = layout(root).descendants().slice(1);
+						links = layout(root).links();
 
+						// Draw all the links!
 
 						chart.selectAll('.link').data(links).enter().append('path').classed('link', true).attr('fill', 'none').attr('stroke', function (d) {
-							return color(d.data.house);
-						}).attr('d', function (d) {
-							return line([// This bit is admittedly kinda dumb
-							[d.x, d.y], [d.x, (d.y + d.parent.y) / 2], [d.parent.x, (d.y + d.parent.y) / 2], [d.parent.x, d.parent.y]]);
-						});
+							return color(d.source.data.house);
+						}).attr('d', line);
 
-						// Nodes
+						// Draw all the nodes!
 						node = chart.selectAll('.node').data(root.descendants()).enter().append('circle').classed('node', true).attr('r', 4.5).attr('fill', function (d) {
 							return color(d.data.house);
 						}).attr('class', 'node').attr('cx', function (d) {
@@ -26334,6 +26418,7 @@ var tree = exports.tree = function () {
 							return d.y;
 						});
 
+						// Tooltip time!
 
 						node.call((0, _common.tooltip)(function (d) {
 							return d.id;
@@ -26351,6 +26436,14 @@ var tree = exports.tree = function () {
 		return _ref4.apply(this, arguments);
 	};
 }();
+
+/**
+ * Force-directed network diagram!
+ * @param  {Object} opts  Options!
+ * @param  {d3Scale} color D3 colour scale!
+ * @return {void}
+ */
+
 
 var force = exports.force = function () {
 	var _ref5 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4(opts, color) {
@@ -26409,30 +26502,64 @@ var force = exports.force = function () {
 					case 8:
 						data = _context4.sent;
 						_svg$node3 = this.svg.node(), height = _svg$node3.clientHeight, width = _svg$node3.clientWidth;
+
+						// Draw a bunch of links!
+
 						link = this.container.append('g').attr('class', 'links').selectAll('line').data(data.edges).enter().append('line').attr('stroke', function (d) {
 							return color(d.Source);
 						}).attr('stroke-width', function (d) {
 							return Math.sqrt(Number(d.weight));
 						});
+
+						// Create a scale for drawing node radii
+
 						radius = d3.scaleLinear().domain(d3.extent(data.nodes, function (d) {
 							return Number(d.pagerank);
 						})).range([4, 20]);
+
+						// Draw all the nodes!
+
 						node = this.container.append('g').attr('class', 'nodes').selectAll('circle').data(data.nodes).enter().append('circle').attr('r', function (d) {
 							return radius(Number(d.pagerank));
-						}).attr('fill', function (d) {
+						}) // Size based on pagerank value
+						.attr('fill', function (d) {
 							return color(d.modularity_class);
-						}).call(d3.drag().on('start', dragstart).on('drag', dragging).on('end', dragend));
-						padding = 2;
-						sim = d3.forceSimulation().nodes(data.nodes).force('collide', d3.forceCollide(function (d) {
-							return radius(Number(d.pagerank)) + padding;
-						})).force('center', d3.forceCenter(width / 2, height / 2)).force('link', d3.forceLink(data.edges).id(function (d) {
-							return d.id;
-						}).distance(10)).on('tick', ticked);
+						}) // Fill based on community
+						.call(d3.drag() // Set up mouse events for node click/drag
+						.on('start', dragstart).on('drag', dragging).on('end', dragend));
 
+						// Here's where it's cool. Create a force simulation to arrange all the links/nodes.
+
+						padding = 2;
+						sim = d3.forceSimulation().nodes(data.nodes)
+						// This force causes nodes to push other nodes in their proximity away
+						.force('collide', d3.forceCollide(function (d) {
+							return radius(Number(d.pagerank)) + padding;
+						}))
+						// This pushes nodes towards the center of the chart
+						.force('center', d3.forceCenter(width / 2, height / 2))
+						// This causes the links to attempt to keep nodes a distance of 10 away from each other.
+						.force('link', d3.forceLink(data.edges).id(function (d) {
+							return d.id;
+						}).distance(10)).on('tick', ticked); // Run the `ticked` function on every simulation tick
+
+						// Enable tooltips
 
 						node.call((0, _common.tooltip)(function (d) {
 							return d.id;
 						}, this.container));
+
+						// This runs every time the simulation recalculates positions, on the "tick" event
+						// All we're doing is setting the positioning properties to the new positions.
+
+
+						// If you drag one, it restarts the sim and updates dragged node position
+
+
+						// Sets new position based on where the mouse is dragging the node to
+
+
+						// Resets position and sim when no longer dragging
 
 					case 16:
 					case 'end':
@@ -26446,6 +26573,14 @@ var force = exports.force = function () {
 		return _ref5.apply(this, arguments);
 	};
 }();
+
+/**
+ * Treemap!
+ * @param  {Object} opts  Options!
+ * @param  {d3Scale} color D3 colour scaleOrdinal
+ * @return {void}
+ */
+
 
 var treemap = exports.treemap = function () {
 	var _ref6 = _asyncToGenerator(regeneratorRuntime.mark(function _callee5(opts, color) {
@@ -26468,6 +26603,9 @@ var treemap = exports.treemap = function () {
 						data.push({ name: 'unknown', father: '' }); // Adds root node
 
 						_svg$node4 = this.svg.node(), height = _svg$node4.clientHeight, width = _svg$node4.clientWidth;
+
+						// Strat dat!
+
 						stratify = d3.stratify().parentId(function (d) {
 							return d.father;
 						}).id(function (d) {
@@ -26475,17 +26613,26 @@ var treemap = exports.treemap = function () {
 						});
 						root = stratify(data).sum(function (d) {
 							return d.screentime;
-						}).sort(function (a, b) {
+						}) // Size the boxes based on the sum of character and his descendants' screentime
+						.sort(function (a, b) {
 							return b.height - a.height || b.value - a.value;
 						});
-						cellPadding = 10;
+						cellPadding = 10; // Tweaking this value is fun
+
+						// Instantiate the treemap layout
+
 						layout = d3.treemap().size([width - 100, height]).padding(cellPadding);
 
+						// Mutate data based on layout calculations.
+						// This is gross and totally not functional programming.
 
 						layout(root);
 
-						nodes = this.container.selectAll('.node').data(root.descendants().slice(1)).enter().append('g').attr('class', 'node');
+						// Place nodes into groups
+						nodes = this.container.selectAll('.node').data(root.descendants().slice(1)) // We trim off the root node we added at the start.
+						.enter().append('g').attr('class', 'node');
 
+						// Actually draw the nodes
 
 						nodes.append('rect').attr('x', function (d) {
 							return d.x0;
@@ -26499,6 +26646,7 @@ var treemap = exports.treemap = function () {
 							return color(d.data.house);
 						});
 
+						// T-t-t-t-t-tooooooltiiiiiiip!
 						nodes.call((0, _common.tooltip)(function (d) {
 							return d.id;
 						}, this.svg));
@@ -26515,6 +26663,14 @@ var treemap = exports.treemap = function () {
 		return _ref6.apply(this, arguments);
 	};
 }();
+
+/**
+ * Bonus: Pack charts
+ * @param  {Object} opts  Options
+ * @param  {d3Scale} color D3 colour scaleOrdinal
+ * @return {void}          ...If you stare into the `void`, you won't return.
+ */
+
 
 var pack = exports.pack = function () {
 	var _ref7 = _asyncToGenerator(regeneratorRuntime.mark(function _callee6(opts, color) {
@@ -26537,6 +26693,9 @@ var pack = exports.pack = function () {
 						data.push({ name: 'unknown', father: '' }); // Adds root node
 
 						_svg$node5 = this.svg.node(), height = _svg$node5.clientHeight, width = _svg$node5.clientWidth;
+
+						// 🎶 It's right outside your door / now stratify! 🎶
+
 						stratify = d3.stratify().parentId(function (d) {
 							return d.father;
 						}).id(function (d) {
@@ -26547,11 +26706,16 @@ var pack = exports.pack = function () {
 						}).sort(function (a, b) {
 							return b.value - a.value;
 						});
+
+						// Instantiate the pack layout. Kind of similar to treemap so far, huh?
+
 						layout = d3.pack().size([width - 100, height]);
 
+						// Remember this icky, side-effect-y thing from treemap? It's here too!
 
 						layout(root);
 
+						// Draw the nodes again!
 						nodes = this.container.selectAll('.node').data(root.descendants().slice(1)).enter().append('circle').attr('class', 'node').attr('cx', function (d) {
 							return d.x;
 						}).attr('cy', function (d) {
@@ -26564,6 +26728,7 @@ var pack = exports.pack = function () {
 							return color(d.data.house);
 						});
 
+						// 🎶 Take me down to tooltip city / where the grass is green and the text so spiffy! 🎶
 
 						nodes.call((0, _common.tooltip)(function (d) {
 							return d.id;
@@ -26634,7 +26799,7 @@ exports = module.exports = __webpack_require__(59)(true);
 
 
 // module
-exports.push([module.i, "/**\n * prism.js Funky theme\n * Based on “Polyfilling the gaps” talk slides http://lea.verou.me/polyfilling-the-gaps/\n * @author Lea Verou\n */\n\ncode[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\n\ttext-align: left;\n\twhite-space: pre;\n\tword-spacing: normal;\n\tword-break: normal;\n\tword-wrap: normal;\n\tline-height: 1.5;\n\n\t-moz-tab-size: 4;\n\t-o-tab-size: 4;\n\ttab-size: 4;\n\n\t-webkit-hyphens: none;\n\t-moz-hyphens: none;\n\t-ms-hyphens: none;\n\thyphens: none;\n}\n\n/* Code blocks */\npre[class*=\"language-\"] {\n\tpadding: .4em .8em;\n\tmargin: .5em 0;\n\toverflow: auto;\n\tbackground: url('data:image/svg+xml;charset=utf-8,<svg%20version%3D\"1.1\"%20xmlns%3D\"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg\"%20width%3D\"100\"%20height%3D\"100\"%20fill%3D\"rgba(0%2C0%2C0%2C.2)\">%0D%0A<polygon%20points%3D\"0%2C50%2050%2C0%200%2C0\"%20%2F>%0D%0A<polygon%20points%3D\"0%2C100%2050%2C100%20100%2C50%20100%2C0\"%20%2F>%0D%0A<%2Fsvg>');\n\tbackground-size: 1em 1em;\n}\n\ncode[class*=\"language-\"] {\n\tbackground: black;\n\tcolor: white;\n\tbox-shadow: -.3em 0 0 .3em black, .3em 0 0 .3em black;\n}\n\n/* Inline code */\n:not(pre) > code[class*=\"language-\"] {\n\tpadding: .2em;\n\tborder-radius: .3em;\n\tbox-shadow: none;\n\twhite-space: normal;\n}\n\n.token.comment,\n.token.prolog,\n.token.doctype,\n.token.cdata {\n\tcolor: #aaa;\n}\n\n.token.punctuation {\n\tcolor: #999;\n}\n\n.namespace {\n\topacity: .7;\n}\n\n.token.property,\n.token.tag,\n.token.boolean,\n.token.number,\n.token.constant,\n.token.symbol {\n\tcolor: #0cf;\n}\n\n.token.selector,\n.token.attr-name,\n.token.string,\n.token.char,\n.token.builtin {\n\tcolor: yellow;\n}\n\n.token.operator,\n.token.entity,\n.token.url,\n.language-css .token.string,\n.toke.variable,\n.token.inserted {\n\tcolor: yellowgreen;\n}\n\n.token.atrule,\n.token.attr-value,\n.token.keyword {\n\tcolor: deeppink;\n}\n\n.token.regex,\n.token.important {\n\tcolor: orange;\n}\n\n.token.important,\n.token.bold {\n\tfont-weight: bold;\n}\n.token.italic {\n\tfont-style: italic;\n}\n\n.token.entity {\n\tcursor: help;\n}\n\n.token.deleted {\n\tcolor: red;\n}\n", "", {"version":3,"sources":["/Users/aendrew/Sites/got-presentation/node_modules/prismjs/themes/prism-funky.css"],"names":[],"mappings":"AAAA;;;;GAIG;;AAEH;;CAEC,uEAAuE;CACvE,iBAAiB;CACjB,iBAAiB;CACjB,qBAAqB;CACrB,mBAAmB;CACnB,kBAAkB;CAClB,iBAAiB;;CAEjB,iBAAiB;CACjB,eAAe;CACf,YAAY;;CAEZ,sBAAsB;CACtB,mBAAmB;CACnB,kBAAkB;CAClB,cAAc;CACd;;AAED,iBAAiB;AACjB;CACC,mBAAmB;CACnB,eAAe;CACf,eAAe;CACf,gVAAgV;CAChV,yBAAyB;CACzB;;AAED;CACC,kBAAkB;CAClB,aAAa;CACb,sDAAsD;CACtD;;AAED,iBAAiB;AACjB;CACC,cAAc;CACd,oBAAoB;CACpB,iBAAiB;CACjB,oBAAoB;CACpB;;AAED;;;;CAIC,YAAY;CACZ;;AAED;CACC,YAAY;CACZ;;AAED;CACC,YAAY;CACZ;;AAED;;;;;;CAMC,YAAY;CACZ;;AAED;;;;;CAKC,cAAc;CACd;;AAED;;;;;;CAMC,mBAAmB;CACnB;;AAED;;;CAGC,gBAAgB;CAChB;;AAED;;CAEC,cAAc;CACd;;AAED;;CAEC,kBAAkB;CAClB;AACD;CACC,mBAAmB;CACnB;;AAED;CACC,aAAa;CACb;;AAED;CACC,WAAW;CACX","file":"prism-funky.css","sourcesContent":["/**\n * prism.js Funky theme\n * Based on “Polyfilling the gaps” talk slides http://lea.verou.me/polyfilling-the-gaps/\n * @author Lea Verou\n */\n\ncode[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\n\ttext-align: left;\n\twhite-space: pre;\n\tword-spacing: normal;\n\tword-break: normal;\n\tword-wrap: normal;\n\tline-height: 1.5;\n\n\t-moz-tab-size: 4;\n\t-o-tab-size: 4;\n\ttab-size: 4;\n\n\t-webkit-hyphens: none;\n\t-moz-hyphens: none;\n\t-ms-hyphens: none;\n\thyphens: none;\n}\n\n/* Code blocks */\npre[class*=\"language-\"] {\n\tpadding: .4em .8em;\n\tmargin: .5em 0;\n\toverflow: auto;\n\tbackground: url('data:image/svg+xml;charset=utf-8,<svg%20version%3D\"1.1\"%20xmlns%3D\"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg\"%20width%3D\"100\"%20height%3D\"100\"%20fill%3D\"rgba(0%2C0%2C0%2C.2)\">%0D%0A<polygon%20points%3D\"0%2C50%2050%2C0%200%2C0\"%20%2F>%0D%0A<polygon%20points%3D\"0%2C100%2050%2C100%20100%2C50%20100%2C0\"%20%2F>%0D%0A<%2Fsvg>');\n\tbackground-size: 1em 1em;\n}\n\ncode[class*=\"language-\"] {\n\tbackground: black;\n\tcolor: white;\n\tbox-shadow: -.3em 0 0 .3em black, .3em 0 0 .3em black;\n}\n\n/* Inline code */\n:not(pre) > code[class*=\"language-\"] {\n\tpadding: .2em;\n\tborder-radius: .3em;\n\tbox-shadow: none;\n\twhite-space: normal;\n}\n\n.token.comment,\n.token.prolog,\n.token.doctype,\n.token.cdata {\n\tcolor: #aaa;\n}\n\n.token.punctuation {\n\tcolor: #999;\n}\n\n.namespace {\n\topacity: .7;\n}\n\n.token.property,\n.token.tag,\n.token.boolean,\n.token.number,\n.token.constant,\n.token.symbol {\n\tcolor: #0cf;\n}\n\n.token.selector,\n.token.attr-name,\n.token.string,\n.token.char,\n.token.builtin {\n\tcolor: yellow;\n}\n\n.token.operator,\n.token.entity,\n.token.url,\n.language-css .token.string,\n.toke.variable,\n.token.inserted {\n\tcolor: yellowgreen;\n}\n\n.token.atrule,\n.token.attr-value,\n.token.keyword {\n\tcolor: deeppink;\n}\n\n.token.regex,\n.token.important {\n\tcolor: orange;\n}\n\n.token.important,\n.token.bold {\n\tfont-weight: bold;\n}\n.token.italic {\n\tfont-style: italic;\n}\n\n.token.entity {\n\tcursor: help;\n}\n\n.token.deleted {\n\tcolor: red;\n}\n"],"sourceRoot":""}]);
+exports.push([module.i, "/**\n * prism.js Funky theme\n * Based on “Polyfilling the gaps” talk slides http://lea.verou.me/polyfilling-the-gaps/\n * @author Lea Verou\n */\n\ncode[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\n\ttext-align: left;\n\twhite-space: pre;\n\tword-spacing: normal;\n\tword-break: normal;\n\tword-wrap: normal;\n\tline-height: 1.5;\n\n\t-moz-tab-size: 4;\n\t-o-tab-size: 4;\n\ttab-size: 4;\n\n\t-webkit-hyphens: none;\n\t-moz-hyphens: none;\n\t-ms-hyphens: none;\n\thyphens: none;\n}\n\n/* Code blocks */\npre[class*=\"language-\"] {\n\tpadding: .4em .8em;\n\tmargin: .5em 0;\n\toverflow: auto;\n\tbackground: url('data:image/svg+xml;charset=utf-8,<svg%20version%3D\"1.1\"%20xmlns%3D\"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg\"%20width%3D\"100\"%20height%3D\"100\"%20fill%3D\"rgba(0%2C0%2C0%2C.2)\">%0D%0A<polygon%20points%3D\"0%2C50%2050%2C0%200%2C0\"%20%2F>%0D%0A<polygon%20points%3D\"0%2C100%2050%2C100%20100%2C50%20100%2C0\"%20%2F>%0D%0A<%2Fsvg>');\n\tbackground-size: 1em 1em;\n}\n\ncode[class*=\"language-\"] {\n\tbackground: black;\n\tcolor: white;\n\tbox-shadow: -.3em 0 0 .3em black, .3em 0 0 .3em black;\n}\n\n/* Inline code */\n:not(pre) > code[class*=\"language-\"] {\n\tpadding: .2em;\n\tborder-radius: .3em;\n\tbox-shadow: none;\n\twhite-space: normal;\n}\n\n.token.comment,\n.token.prolog,\n.token.doctype,\n.token.cdata {\n\tcolor: #aaa;\n}\n\n.token.punctuation {\n\tcolor: #999;\n}\n\n.namespace {\n\topacity: .7;\n}\n\n.token.property,\n.token.tag,\n.token.boolean,\n.token.number,\n.token.constant,\n.token.symbol {\n\tcolor: #0cf;\n}\n\n.token.selector,\n.token.attr-name,\n.token.string,\n.token.char,\n.token.builtin {\n\tcolor: yellow;\n}\n\n.token.operator,\n.token.entity,\n.token.url,\n.language-css .token.string,\n.toke.variable,\n.token.inserted {\n\tcolor: yellowgreen;\n}\n\n.token.atrule,\n.token.attr-value,\n.token.keyword {\n\tcolor: deeppink;\n}\n\n.token.regex,\n.token.important {\n\tcolor: orange;\n}\n\n.token.important,\n.token.bold {\n\tfont-weight: bold;\n}\n.token.italic {\n\tfont-style: italic;\n}\n\n.token.entity {\n\tcursor: help;\n}\n\n.token.deleted {\n\tcolor: red;\n}\n", "", {"version":3,"sources":["/Users/andrew.rininsland/Projects/got-presentation/node_modules/prismjs/themes/prism-funky.css"],"names":[],"mappings":"AAAA;;;;GAIG;;AAEH;;CAEC,uEAAuE;CACvE,iBAAiB;CACjB,iBAAiB;CACjB,qBAAqB;CACrB,mBAAmB;CACnB,kBAAkB;CAClB,iBAAiB;;CAEjB,iBAAiB;CACjB,eAAe;CACf,YAAY;;CAEZ,sBAAsB;CACtB,mBAAmB;CACnB,kBAAkB;CAClB,cAAc;CACd;;AAED,iBAAiB;AACjB;CACC,mBAAmB;CACnB,eAAe;CACf,eAAe;CACf,gVAAgV;CAChV,yBAAyB;CACzB;;AAED;CACC,kBAAkB;CAClB,aAAa;CACb,sDAAsD;CACtD;;AAED,iBAAiB;AACjB;CACC,cAAc;CACd,oBAAoB;CACpB,iBAAiB;CACjB,oBAAoB;CACpB;;AAED;;;;CAIC,YAAY;CACZ;;AAED;CACC,YAAY;CACZ;;AAED;CACC,YAAY;CACZ;;AAED;;;;;;CAMC,YAAY;CACZ;;AAED;;;;;CAKC,cAAc;CACd;;AAED;;;;;;CAMC,mBAAmB;CACnB;;AAED;;;CAGC,gBAAgB;CAChB;;AAED;;CAEC,cAAc;CACd;;AAED;;CAEC,kBAAkB;CAClB;AACD;CACC,mBAAmB;CACnB;;AAED;CACC,aAAa;CACb;;AAED;CACC,WAAW;CACX","file":"prism-funky.css","sourcesContent":["/**\n * prism.js Funky theme\n * Based on “Polyfilling the gaps” talk slides http://lea.verou.me/polyfilling-the-gaps/\n * @author Lea Verou\n */\n\ncode[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\n\ttext-align: left;\n\twhite-space: pre;\n\tword-spacing: normal;\n\tword-break: normal;\n\tword-wrap: normal;\n\tline-height: 1.5;\n\n\t-moz-tab-size: 4;\n\t-o-tab-size: 4;\n\ttab-size: 4;\n\n\t-webkit-hyphens: none;\n\t-moz-hyphens: none;\n\t-ms-hyphens: none;\n\thyphens: none;\n}\n\n/* Code blocks */\npre[class*=\"language-\"] {\n\tpadding: .4em .8em;\n\tmargin: .5em 0;\n\toverflow: auto;\n\tbackground: url('data:image/svg+xml;charset=utf-8,<svg%20version%3D\"1.1\"%20xmlns%3D\"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg\"%20width%3D\"100\"%20height%3D\"100\"%20fill%3D\"rgba(0%2C0%2C0%2C.2)\">%0D%0A<polygon%20points%3D\"0%2C50%2050%2C0%200%2C0\"%20%2F>%0D%0A<polygon%20points%3D\"0%2C100%2050%2C100%20100%2C50%20100%2C0\"%20%2F>%0D%0A<%2Fsvg>');\n\tbackground-size: 1em 1em;\n}\n\ncode[class*=\"language-\"] {\n\tbackground: black;\n\tcolor: white;\n\tbox-shadow: -.3em 0 0 .3em black, .3em 0 0 .3em black;\n}\n\n/* Inline code */\n:not(pre) > code[class*=\"language-\"] {\n\tpadding: .2em;\n\tborder-radius: .3em;\n\tbox-shadow: none;\n\twhite-space: normal;\n}\n\n.token.comment,\n.token.prolog,\n.token.doctype,\n.token.cdata {\n\tcolor: #aaa;\n}\n\n.token.punctuation {\n\tcolor: #999;\n}\n\n.namespace {\n\topacity: .7;\n}\n\n.token.property,\n.token.tag,\n.token.boolean,\n.token.number,\n.token.constant,\n.token.symbol {\n\tcolor: #0cf;\n}\n\n.token.selector,\n.token.attr-name,\n.token.string,\n.token.char,\n.token.builtin {\n\tcolor: yellow;\n}\n\n.token.operator,\n.token.entity,\n.token.url,\n.language-css .token.string,\n.toke.variable,\n.token.inserted {\n\tcolor: yellowgreen;\n}\n\n.token.atrule,\n.token.attr-value,\n.token.keyword {\n\tcolor: deeppink;\n}\n\n.token.regex,\n.token.important {\n\tcolor: orange;\n}\n\n.token.important,\n.token.bold {\n\tfont-weight: bold;\n}\n.token.italic {\n\tfont-style: italic;\n}\n\n.token.entity {\n\tcursor: help;\n}\n\n.token.deleted {\n\tcolor: red;\n}\n"],"sourceRoot":""}]);
 
 // exports
 
@@ -26774,7 +26939,7 @@ exports = module.exports = __webpack_require__(59)(true);
 
 
 // module
-exports.push([module.i, "pre.line-numbers {\n\tposition: relative;\n\tpadding-left: 3.8em;\n\tcounter-reset: linenumber;\n}\n\npre.line-numbers > code {\n\tposition: relative;\n}\n\n.line-numbers .line-numbers-rows {\n\tposition: absolute;\n\tpointer-events: none;\n\ttop: 0;\n\tfont-size: 100%;\n\tleft: -3.8em;\n\twidth: 3em; /* works for line-numbers below 1000 lines */\n\tletter-spacing: -1px;\n\tborder-right: 1px solid #999;\n\n\t-webkit-user-select: none;\n\t-moz-user-select: none;\n\t-ms-user-select: none;\n\tuser-select: none;\n\n}\n\n\t.line-numbers-rows > span {\n\t\tpointer-events: none;\n\t\tdisplay: block;\n\t\tcounter-increment: linenumber;\n\t}\n\n\t\t.line-numbers-rows > span:before {\n\t\t\tcontent: counter(linenumber);\n\t\t\tcolor: #999;\n\t\t\tdisplay: block;\n\t\t\tpadding-right: 0.8em;\n\t\t\ttext-align: right;\n\t\t}", "", {"version":3,"sources":["/Users/aendrew/Sites/got-presentation/node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css"],"names":[],"mappings":"AAAA;CACC,mBAAmB;CACnB,oBAAoB;CACpB,0BAA0B;CAC1B;;AAED;CACC,mBAAmB;CACnB;;AAED;CACC,mBAAmB;CACnB,qBAAqB;CACrB,OAAO;CACP,gBAAgB;CAChB,aAAa;CACb,WAAW,CAAC,6CAA6C;CACzD,qBAAqB;CACrB,6BAA6B;;CAE7B,0BAA0B;CAC1B,uBAAuB;CACvB,sBAAsB;CACtB,kBAAkB;;CAElB;;CAEA;EACC,qBAAqB;EACrB,eAAe;EACf,8BAA8B;EAC9B;;EAEA;GACC,6BAA6B;GAC7B,YAAY;GACZ,eAAe;GACf,qBAAqB;GACrB,kBAAkB;GAClB","file":"prism-line-numbers.css","sourcesContent":["pre.line-numbers {\n\tposition: relative;\n\tpadding-left: 3.8em;\n\tcounter-reset: linenumber;\n}\n\npre.line-numbers > code {\n\tposition: relative;\n}\n\n.line-numbers .line-numbers-rows {\n\tposition: absolute;\n\tpointer-events: none;\n\ttop: 0;\n\tfont-size: 100%;\n\tleft: -3.8em;\n\twidth: 3em; /* works for line-numbers below 1000 lines */\n\tletter-spacing: -1px;\n\tborder-right: 1px solid #999;\n\n\t-webkit-user-select: none;\n\t-moz-user-select: none;\n\t-ms-user-select: none;\n\tuser-select: none;\n\n}\n\n\t.line-numbers-rows > span {\n\t\tpointer-events: none;\n\t\tdisplay: block;\n\t\tcounter-increment: linenumber;\n\t}\n\n\t\t.line-numbers-rows > span:before {\n\t\t\tcontent: counter(linenumber);\n\t\t\tcolor: #999;\n\t\t\tdisplay: block;\n\t\t\tpadding-right: 0.8em;\n\t\t\ttext-align: right;\n\t\t}"],"sourceRoot":""}]);
+exports.push([module.i, "pre.line-numbers {\n\tposition: relative;\n\tpadding-left: 3.8em;\n\tcounter-reset: linenumber;\n}\n\npre.line-numbers > code {\n\tposition: relative;\n}\n\n.line-numbers .line-numbers-rows {\n\tposition: absolute;\n\tpointer-events: none;\n\ttop: 0;\n\tfont-size: 100%;\n\tleft: -3.8em;\n\twidth: 3em; /* works for line-numbers below 1000 lines */\n\tletter-spacing: -1px;\n\tborder-right: 1px solid #999;\n\n\t-webkit-user-select: none;\n\t-moz-user-select: none;\n\t-ms-user-select: none;\n\tuser-select: none;\n\n}\n\n\t.line-numbers-rows > span {\n\t\tpointer-events: none;\n\t\tdisplay: block;\n\t\tcounter-increment: linenumber;\n\t}\n\n\t\t.line-numbers-rows > span:before {\n\t\t\tcontent: counter(linenumber);\n\t\t\tcolor: #999;\n\t\t\tdisplay: block;\n\t\t\tpadding-right: 0.8em;\n\t\t\ttext-align: right;\n\t\t}", "", {"version":3,"sources":["/Users/andrew.rininsland/Projects/got-presentation/node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css"],"names":[],"mappings":"AAAA;CACC,mBAAmB;CACnB,oBAAoB;CACpB,0BAA0B;CAC1B;;AAED;CACC,mBAAmB;CACnB;;AAED;CACC,mBAAmB;CACnB,qBAAqB;CACrB,OAAO;CACP,gBAAgB;CAChB,aAAa;CACb,WAAW,CAAC,6CAA6C;CACzD,qBAAqB;CACrB,6BAA6B;;CAE7B,0BAA0B;CAC1B,uBAAuB;CACvB,sBAAsB;CACtB,kBAAkB;;CAElB;;CAEA;EACC,qBAAqB;EACrB,eAAe;EACf,8BAA8B;EAC9B;;EAEA;GACC,6BAA6B;GAC7B,YAAY;GACZ,eAAe;GACf,qBAAqB;GACrB,kBAAkB;GAClB","file":"prism-line-numbers.css","sourcesContent":["pre.line-numbers {\n\tposition: relative;\n\tpadding-left: 3.8em;\n\tcounter-reset: linenumber;\n}\n\npre.line-numbers > code {\n\tposition: relative;\n}\n\n.line-numbers .line-numbers-rows {\n\tposition: absolute;\n\tpointer-events: none;\n\ttop: 0;\n\tfont-size: 100%;\n\tleft: -3.8em;\n\twidth: 3em; /* works for line-numbers below 1000 lines */\n\tletter-spacing: -1px;\n\tborder-right: 1px solid #999;\n\n\t-webkit-user-select: none;\n\t-moz-user-select: none;\n\t-ms-user-select: none;\n\tuser-select: none;\n\n}\n\n\t.line-numbers-rows > span {\n\t\tpointer-events: none;\n\t\tdisplay: block;\n\t\tcounter-increment: linenumber;\n\t}\n\n\t\t.line-numbers-rows > span:before {\n\t\t\tcontent: counter(linenumber);\n\t\t\tcolor: #999;\n\t\t\tdisplay: block;\n\t\t\tpadding-right: 0.8em;\n\t\t\ttext-align: right;\n\t\t}"],"sourceRoot":""}]);
 
 // exports
 
@@ -26819,7 +26984,7 @@ exports = module.exports = __webpack_require__(59)(true);
 
 
 // module
-exports.push([module.i, "pre[data-line] {\n\tposition: relative;\n\tpadding: 1em 0 1em 3em;\n}\n\n.line-highlight {\n\tposition: absolute;\n\tleft: 0;\n\tright: 0;\n\tpadding: inherit 0;\n\tmargin-top: 1em; /* Same as .prism’s padding-top */\n\n\tbackground: hsla(24, 20%, 50%,.08);\n\tbackground: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));\n\n\tpointer-events: none;\n\n\tline-height: inherit;\n\twhite-space: pre;\n}\n\n\t.line-highlight:before,\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-start);\n\t\tposition: absolute;\n\t\ttop: .4em;\n\t\tleft: .6em;\n\t\tmin-width: 1em;\n\t\tpadding: 0 .5em;\n\t\tbackground-color: hsla(24, 20%, 50%,.4);\n\t\tcolor: hsl(24, 20%, 95%);\n\t\tfont: bold 65%/1.5 sans-serif;\n\t\ttext-align: center;\n\t\tvertical-align: .3em;\n\t\tborder-radius: 999px;\n\t\ttext-shadow: none;\n\t\tbox-shadow: 0 1px white;\n\t}\n\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-end);\n\t\ttop: auto;\n\t\tbottom: .4em;\n\t}\n", "", {"version":3,"sources":["/Users/aendrew/Sites/got-presentation/node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css"],"names":[],"mappings":"AAAA;CACC,mBAAmB;CACnB,uBAAuB;CACvB;;AAED;CACC,mBAAmB;CACnB,QAAQ;CACR,SAAS;CACT,mBAAmB;CACnB,gBAAgB,CAAC,kCAAkC;;CAEnD,mCAAmC;CACnC,uFAAuF;;CAEvF,qBAAqB;;CAErB,qBAAqB;CACrB,iBAAiB;CACjB;;CAEA;;EAEC,0BAA0B;EAC1B,mBAAmB;EACnB,UAAU;EACV,WAAW;EACX,eAAe;EACf,gBAAgB;EAChB,wCAAwC;EACxC,yBAAyB;EACzB,8BAA8B;EAC9B,mBAAmB;EACnB,qBAAqB;EACrB,qBAAqB;EACrB,kBAAkB;EAClB,wBAAwB;EACxB;;CAED;EACC,wBAAwB;EACxB,UAAU;EACV,aAAa;EACb","file":"prism-line-highlight.css","sourcesContent":["pre[data-line] {\n\tposition: relative;\n\tpadding: 1em 0 1em 3em;\n}\n\n.line-highlight {\n\tposition: absolute;\n\tleft: 0;\n\tright: 0;\n\tpadding: inherit 0;\n\tmargin-top: 1em; /* Same as .prism’s padding-top */\n\n\tbackground: hsla(24, 20%, 50%,.08);\n\tbackground: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));\n\n\tpointer-events: none;\n\n\tline-height: inherit;\n\twhite-space: pre;\n}\n\n\t.line-highlight:before,\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-start);\n\t\tposition: absolute;\n\t\ttop: .4em;\n\t\tleft: .6em;\n\t\tmin-width: 1em;\n\t\tpadding: 0 .5em;\n\t\tbackground-color: hsla(24, 20%, 50%,.4);\n\t\tcolor: hsl(24, 20%, 95%);\n\t\tfont: bold 65%/1.5 sans-serif;\n\t\ttext-align: center;\n\t\tvertical-align: .3em;\n\t\tborder-radius: 999px;\n\t\ttext-shadow: none;\n\t\tbox-shadow: 0 1px white;\n\t}\n\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-end);\n\t\ttop: auto;\n\t\tbottom: .4em;\n\t}\n"],"sourceRoot":""}]);
+exports.push([module.i, "pre[data-line] {\n\tposition: relative;\n\tpadding: 1em 0 1em 3em;\n}\n\n.line-highlight {\n\tposition: absolute;\n\tleft: 0;\n\tright: 0;\n\tpadding: inherit 0;\n\tmargin-top: 1em; /* Same as .prism’s padding-top */\n\n\tbackground: hsla(24, 20%, 50%,.08);\n\tbackground: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));\n\n\tpointer-events: none;\n\n\tline-height: inherit;\n\twhite-space: pre;\n}\n\n\t.line-highlight:before,\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-start);\n\t\tposition: absolute;\n\t\ttop: .4em;\n\t\tleft: .6em;\n\t\tmin-width: 1em;\n\t\tpadding: 0 .5em;\n\t\tbackground-color: hsla(24, 20%, 50%,.4);\n\t\tcolor: hsl(24, 20%, 95%);\n\t\tfont: bold 65%/1.5 sans-serif;\n\t\ttext-align: center;\n\t\tvertical-align: .3em;\n\t\tborder-radius: 999px;\n\t\ttext-shadow: none;\n\t\tbox-shadow: 0 1px white;\n\t}\n\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-end);\n\t\ttop: auto;\n\t\tbottom: .4em;\n\t}\n", "", {"version":3,"sources":["/Users/andrew.rininsland/Projects/got-presentation/node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css"],"names":[],"mappings":"AAAA;CACC,mBAAmB;CACnB,uBAAuB;CACvB;;AAED;CACC,mBAAmB;CACnB,QAAQ;CACR,SAAS;CACT,mBAAmB;CACnB,gBAAgB,CAAC,kCAAkC;;CAEnD,mCAAmC;CACnC,uFAAuF;;CAEvF,qBAAqB;;CAErB,qBAAqB;CACrB,iBAAiB;CACjB;;CAEA;;EAEC,0BAA0B;EAC1B,mBAAmB;EACnB,UAAU;EACV,WAAW;EACX,eAAe;EACf,gBAAgB;EAChB,wCAAwC;EACxC,yBAAyB;EACzB,8BAA8B;EAC9B,mBAAmB;EACnB,qBAAqB;EACrB,qBAAqB;EACrB,kBAAkB;EAClB,wBAAwB;EACxB;;CAED;EACC,wBAAwB;EACxB,UAAU;EACV,aAAa;EACb","file":"prism-line-highlight.css","sourcesContent":["pre[data-line] {\n\tposition: relative;\n\tpadding: 1em 0 1em 3em;\n}\n\n.line-highlight {\n\tposition: absolute;\n\tleft: 0;\n\tright: 0;\n\tpadding: inherit 0;\n\tmargin-top: 1em; /* Same as .prism’s padding-top */\n\n\tbackground: hsla(24, 20%, 50%,.08);\n\tbackground: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));\n\n\tpointer-events: none;\n\n\tline-height: inherit;\n\twhite-space: pre;\n}\n\n\t.line-highlight:before,\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-start);\n\t\tposition: absolute;\n\t\ttop: .4em;\n\t\tleft: .6em;\n\t\tmin-width: 1em;\n\t\tpadding: 0 .5em;\n\t\tbackground-color: hsla(24, 20%, 50%,.4);\n\t\tcolor: hsl(24, 20%, 95%);\n\t\tfont: bold 65%/1.5 sans-serif;\n\t\ttext-align: center;\n\t\tvertical-align: .3em;\n\t\tborder-radius: 999px;\n\t\ttext-shadow: none;\n\t\tbox-shadow: 0 1px white;\n\t}\n\n\t.line-highlight[data-end]:after {\n\t\tcontent: attr(data-end);\n\t\ttop: auto;\n\t\tbottom: .4em;\n\t}\n"],"sourceRoot":""}]);
 
 // exports
 
@@ -27666,7 +27831,7 @@ exports = module.exports = __webpack_require__(59)(true);
 
 
 // module
-exports.push([module.i, "pre.small {\n\tfont-size: 50%;\n\tline-height: 50%;\n}\n\npre.slightly-smaller {\n\tfont-size: 75%;\n\tline-height: 75%;\n}\n\n.highlighted {\n\tstroke: goldenrod;\n}\n", "", {"version":3,"sources":["/Users/aendrew/Sites/got-presentation/presentation/index.css"],"names":[],"mappings":"AAAA;CACC,eAAe;CACf,iBAAiB;CACjB;;AAED;CACC,eAAe;CACf,iBAAiB;CACjB;;AAED;CACC,kBAAkB;CAClB","file":"index.css","sourcesContent":["pre.small {\n\tfont-size: 50%;\n\tline-height: 50%;\n}\n\npre.slightly-smaller {\n\tfont-size: 75%;\n\tline-height: 75%;\n}\n\n.highlighted {\n\tstroke: goldenrod;\n}\n"],"sourceRoot":""}]);
+exports.push([module.i, "pre.small {\n\tfont-size: 50%;\n\tline-height: 50%;\n}\n\npre.slightly-smaller {\n\tfont-size: 75%;\n\tline-height: 75%;\n}\n\n.highlighted {\n\tstroke: goldenrod;\n}\n", "", {"version":3,"sources":["/Users/andrew.rininsland/Projects/got-presentation/presentation/index.css"],"names":[],"mappings":"AAAA;CACC,eAAe;CACf,iBAAiB;CACjB;;AAED;CACC,eAAe;CACf,iBAAiB;CACjB;;AAED;CACC,kBAAkB;CAClB","file":"index.css","sourcesContent":["pre.small {\n\tfont-size: 50%;\n\tline-height: 50%;\n}\n\npre.slightly-smaller {\n\tfont-size: 75%;\n\tline-height: 75%;\n}\n\n.highlighted {\n\tstroke: goldenrod;\n}\n"],"sourceRoot":""}]);
 
 // exports
 
