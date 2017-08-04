@@ -3,7 +3,7 @@
 
 Click [here](http://aendrew.github.io/got-presentation) to view the presentation slides.
 
-## To build code
+## To build code
 
 1. `npm install`
 2. `npm start`
