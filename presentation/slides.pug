@@ -61,7 +61,7 @@ section
 	h2.bullet Hierarchical
 	ul
 		li Pack ✅
-		li Tree (dendrograph) ✅
+		li Tree (tidytree) ✅
 		li Cluster (pretty much the same as Tree)
 		li Treemap ✅
 		li Partition (kinda like Treemap)
@@ -466,7 +466,7 @@ section#demo-stack
 	div(style="width: 100%; height: 400px;", data-wiggle="true")#chart-stack.chart
 
 section
-	h3 Trees (dendrographs)
+	h3 Trees (tidytrees)
 	h4 Good for depicting explicit hierarchies
 	h5 Let's create a Westeros family tree using the lineages dataset
 
@@ -498,7 +498,9 @@ section
 			const layout = d3.tree()
 				.size([width, height - 20]);
 
-			const line = d3.line().curve(d3.curveBasis);
+			const line = d3.linkVertical()
+				.x(d => d.x)
+				.y(d => d.y);
 
 section
 	h3 Tree charts (code, 4/5)
@@ -514,10 +516,7 @@ section
 					.classed('link', true)
 					.attr('fill', 'none')
 					.attr('stroke', d => color(d.data.house))
-					.attr('d', d => line([ // This bit is admittedly kinda dumb
-						[d.x, d.y], [d.x, (d.y + d.parent.y) / 2],
-						[d.parent.x, (d.y + d.parent.y) / 2], [d.parent.x, d.parent.y]],
-					));
+					.attr('d', line);
 
 section
 	h3 Tree charts (code, 5/5)

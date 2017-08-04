@@ -15,14 +15,14 @@ import * as d3 from 'd3';
  * @return {void}
  */
 export default function chartFactory(selector, chart, opts = {}) {
-	const wrapper = d3.select(selector);
-	const svg = wrapper.append('svg');
-	svg.attr('width', opts.width || wrapper.node().clientWidth);
-	svg.attr('height', opts.height || wrapper.node().clientHeight);
-	const container = svg.append('g');
-	const margin = opts.margin || {};
-	container.attr('transform', `translate(${margin.left || 0}, ${margin.top || 0})`);
-	chart.call({wrapper, svg, container}, opts, d3.scaleOrdinal(d3.schemeCategory20));
+	const wrapper = d3.select(selector); // Create a selection using the selector string
+	const svg = wrapper.append('svg'); // Append a SVG element...
+	svg.attr('width', opts.width || wrapper.node().clientWidth); // ...and set its width/height via
+	svg.attr('height', opts.height || wrapper.node().clientHeight); // ...the wrapper's client properties
+	const container = svg.append('g'); // Add a group container
+	const margin = opts.margin || {}; // Get margins from function arg
+	container.attr('transform', `translate(${margin.left || 0}, ${margin.top || 0})`); // Translate to margins
+	chart.call({wrapper, svg, container}, opts, d3.scaleOrdinal(d3.schemeCategory20)); // Instantiate chart w/ color scale
 }
 
 /**
@@ -32,45 +32,56 @@ export default function chartFactory(selector, chart, opts = {}) {
  * @return {Function}         Tooltip layout
  */
 export function tooltip(text, chart) {
+	// Return a function that gets called on every element of the selection
 	return selection => {
+		/**
+		 * Event callback for hover state
+		 * @param  {Object|Array} d Datum for the item being hovered
+		 * @return {void}
+		 */
 		function mouseover(d) {
 			const path = d3.select(this);
-			path.classed('highlighted', true);
+			path.classed('highlighted', true); // Add highlighted class to current hovered element
 
-			const mouse = d3.mouse(chart.node());
-			const tool = chart.append('g')
+			const mouse = d3.mouse(chart.node()); // Get the mouse coords aligned with target chart element
+			const tool = chart.append('g') // Append a group...
 			.attr('id', 'tooltip')
-			.attr('transform', `translate(${mouse[0] + 5},${mouse[1] + 10})`);
+			.attr('transform', `translate(${mouse[0] + 5},${mouse[1] + 10})`); // ... and translate to mouse coords
 
-			const textNode = tool.append('text')
+			const textNode = tool.append('text') // Add the tooltip text to the group
 			.text(text(d))
 			.attr('fill', 'black')
-			.node();
+			.node(); // Get its node from selection because we need its bounding box below.
 
 			tool.append('rect')
-			.attr('height', textNode.getBBox().height)
-			.attr('width', textNode.getBBox().width + 6)
+			.attr('height', textNode.getBBox().height) // Set background to the dimensions of text box
+			.attr('width', textNode.getBBox().width + 6) // The six here is pretty arbitrary
 			.style('fill', 'rgba(255, 255, 255, 0.6)')
-			.attr('transform', `translate(-3, -23)`);
-
-			tool.select('text')
-			.remove();
-
-			tool.append('text').text(text(d));
+			.attr('transform', `translate(-3, -23)`) // These are also arbitrary; I had to play with them to get text centered.
+			.lower(); // Move this behind the text — SVG stacking order is important!
 		}
 
+		/**
+		 * Move tooltip to new mouse position
+		 * @return {void}
+		 */
 		function mousemove() {
 			const mouse = d3.mouse(chart.node());
 			d3.select('#tooltip')
 			.attr('transform', `translate(${mouse[0] + 15},${mouse[1] + 20})`);
 		}
 
+		/**
+		 * Remove tooltip when no longer hovering stuff
+		 * @return {void}
+		 */
 		function mouseout() {
 			const path = d3.select(this);
 			path.classed('highlighted', false);
 			d3.select('#tooltip').remove();
 		}
 
+		// Set up the above callbacks as mouse events
 		selection.on('mouseover.tooltip', mouseover)
 		.on('mousemove.tooltip', mousemove)
 		.on('mouseout.tooltip', mouseout);

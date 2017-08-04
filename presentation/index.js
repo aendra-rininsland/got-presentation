@@ -26,6 +26,10 @@ const deck = bespoke.from('#presentation', [
 	bespokeNebula()
 ]);
 
+// The below instantiates and destroys the charts when navigated to and from, respectively.
+// Each "demo" slide has ID #demo-chartName, with the container having ID #chart-chartName.
+// "chartName" corresponds to the function defined in charts/index.js.
+
 deck.on('activate', e => {
 	if (e.slide.id.indexOf('demo-') !== -1) {
 		const [, type] = e.slide.id.split('-');
