@@ -1,6 +1,7 @@
 import 'babel-polyfill'; // eslint-disable-line import/no-unassigned-import
 import {resolve} from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 module.exports = async (env = {}) => ({
 	entry: {
@@ -15,13 +16,6 @@ module.exports = async (env = {}) => ({
 	},
 	module: {
 		rules: [
-			{
-				test: /\.(txt|csv|tsv|xml)$/,
-				exclude: /(node_modules|bower_components)/,
-				use: {
-					loader: 'raw-loader'
-				}
-			},
 			{
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
@@ -70,6 +64,15 @@ module.exports = async (env = {}) => ({
 	plugins: [
 		new HtmlWebpackPlugin({
 			template: 'presentation/template.pug'
+		}),
+		new CopyWebpackPlugin([{
+			from: 'data/',
+			to: 'data/'
+		}, {
+			from: 'images/',
+			to: 'images/'
+		}], {
+			copyUnmodified: true
 		})
 	]
 });
