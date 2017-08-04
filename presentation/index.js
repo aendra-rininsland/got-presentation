@@ -1,3 +1,8 @@
+/**
+ * Presentation code
+ * You're probably looking for charts/index.js, this file is pretty boring.
+ */
+
 import * as d3 from 'd3';
 import bespoke from 'bespoke';
 import bespokeKeys from 'bespoke-keys';
